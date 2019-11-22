@@ -39,21 +39,37 @@ void registerSingle(int bitNum, int delta = 0) {
   registerWrite(writeVal, delta);
 }
 
+void registerSingleNot(int bitNum, int delta = 0) {
+  byte writeVal = 0b11111111;
+  bitWrite(writeVal, bitNum, 0);
+  registerWrite(writeVal, delta);
+}
+
 int[8] led_activeRow = {};
-void lights_drawRow() {
+void lights_drawRow(int colPin) { //If flashing, add clears to 0b11111111 and 0b00000000
+  pinMode(rowPin, OUTPUT);
+  digitalWrite(rowPin, HIGH);
   for (int i = 0; i < 8; i++) {
-    if (led_activeRow[i]) {
+    if (led_activeRow[i] == 1) {
       registerSingle(i, LIGHTS_DELTA);
       delay(LIGHTS_SHOWTIME);
     }
   }
+  digitalWrite(rowPin, LOW);
+  for (int i = 0; i < 8; i++) {
+    if (led_activeRow[i] == 2) {
+      registerSingleNot(i, LIGHTS_DELTA);
+      delay(LIGHTS_SHOWTIME);
+    }
+  }
+  pinMode(rowPin, INPUT);
 }
 
 int[6][8] led_fullBoard = {};
 void lights_drawBoard() {
   for (int rNum = 0; rNum < 6; rNum++) {
     led_activeRow = led_fullBoard[rNum];
-    lights_drawRow();
+    lights_drawRow(rNum);
   }
 }
 
