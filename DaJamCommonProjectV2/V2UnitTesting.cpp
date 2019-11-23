@@ -24,7 +24,8 @@ int main()
   std::cout << std::boolalpha;
 
 
-
+  cout << "Check Win/Loss/Tie/Play State Passed?" << "\n";
+  cout << checkGameStates() << "\n";
 
   cout << "Check Clear Game State Passed?" << "\n";
   clearGameState();
@@ -52,7 +53,83 @@ bool checkClearMethod(){
 }
 
 bool checkReverseLights(){
-  
+
+}
+
+bool checkGameStates(){
+  int tieTest[6][8] = { {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2 } };
+
+  int vertTest[6][8] = { {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {2 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {2 , 2 , 0, 0 , 0 , 0 , 0, 0 } };
+
+  int horizontalTest[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 1 , 0 , 0 , 0, 0},
+  {0 , 1 , 1, 1 , 2 , 2 , 2, 2 } };
+
+  int diagonalTest[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 1 , 0, 0},
+  {0 , 0 , 0, 0 , 1 , 1 , 0, 0},
+  {0 , 0 , 0, 1 , 2 , 2 , 0, 0},
+  {0 , 0 , 1, 2 , 1 , 2 , 2, 0 } };
+
+  int noWin[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{1 , 2 , 0, 0 , 0 , 0 , 0, 0},
+		{2 , 1 , 0, 2 , 1 , 2 , 0, 0},
+		{1 , 2 , 0, 1 , 1 , 2 , 2, 0 } };
+
+  bool failed = false;
+  arr = tieTest;
+  isGameWon();
+  if(gameState != tie){
+    cout << "Tie Scenario Failed" << "\n";
+    failed = true;
+  }
+
+  arr = vertTest;
+  isGameWon();
+  if(gameState != P1_won){
+    cout << "Vertical Win Failed" << "\n";
+    failed = true;
+  }
+
+  arr = horizontalTest;
+  isGameWon();
+  if(gameState !=  P2_won){
+    cout << "Horizontal Win Failed" << "\n";
+    failed = true;
+  }
+
+  arr = diagonalTest;
+  isGameWon();
+  if(gameState != P1_won){
+    cout << "Diagonal Win Failed" << "\n";
+    failed = true;
+  }
+
+  arr = noWin;
+  isGameWon();
+  if(gameState != playing){
+    cout << "Playing Condition Failed" << "\n";
+    failed=  true;
+  }
+
+
+  return failed;
 }
 
 
@@ -235,6 +312,22 @@ void isGameWon() {
       int checkfour[4] = {};
       for (int k = 0; k < 4; k ++) {
         checkfour[k] = horizontalDiagonalCheck[j + k][i + k];
+      }
+      int result = checkifArrayContainsFour(checkfour);
+      if (result == 1) {
+        PlayerOneWon = true;
+      }
+      if (result == 2) {
+        PlayerTwoWon = true;
+      }
+    }
+  }
+
+  for (int i = 3; i < (COLUMNS * 3); i++) {
+    for (int j = 3; j < ROWS; j++) {
+      int checkfour[4] = {};
+      for (int k = 0; k < 4; k ++) {
+        checkfour[k] = horizontalDiagonalCheck[j -k][i -k];
       }
       int result = checkifArrayContainsFour(checkfour);
       if (result == 1) {

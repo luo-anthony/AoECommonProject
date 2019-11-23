@@ -225,6 +225,23 @@ void isGameWon() {
     }
   }
 
+  for (int i = 3; i < (COLUMNS * 3); i++) {
+    for (int j = 3; j < ROWS; j++) {
+      int checkfour[4] = {};
+      for (int k = 0; k < 4; k ++) {
+        checkfour[k] = horizontalDiagonalCheck[j -k][i -k];
+      }
+      int result = checkifArrayContainsFour(checkfour);
+      if (result == 1) {
+        PlayerOneWon = true;
+      }
+      if (result == 2) {
+        PlayerTwoWon = true;
+      }
+    }
+  }
+
+
   if (PlayerOneWon == true && PlayerTwoWon == true) {
     gameState = tie;
   }
