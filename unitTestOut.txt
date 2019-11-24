@@ -1,0 +1,44 @@
+include <iostream>
+using namespace std::
+
+horizontalSide Output:
+p1_won
+
+int flipTestOut[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0}, 
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{0 , 0 , 0, 0 , 0 , 0 , 2, 0},
+		{0 , 1 , 1, 0 , 0 , 0 , 1, 2},
+		{2 , 2 , 2, 1 , 1 , 1 , 2, 1},
+		{2 , 2 , 1, 1 , 2 , 2 , 1, 2} };
+p2_won
+
+
+int rotateLeftOut[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0}, 
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{1 , 1 , 2, 1 , 2 , 1 , 2, 2 } };
+playing
+
+int rotateRightOut[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0}, 
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+		{1 , 2 , 0, 0 , 0 , 0 , 0, 0},
+		{2 , 1 , 0, 2 , 1 , 2 , 0, 0},
+		{1 , 2 , 0, 1 , 1 , 2 , 2, 0 } };
+playing
+
+tieTest output:
+tie
+
+vertTest output:
+p1_won
+
+
+
+horizontalTest output:
+p2_won
+
+diagonalTest output:
+p1_won
