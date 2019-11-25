@@ -64,7 +64,7 @@ void resetGame() {
   clearGameState();
   int player = 1;
   gameState = playing;
-  
+
 }
 
 void switchPlayer() {
