@@ -10,6 +10,23 @@ GameState gameState = playing;
 int horizontalDiagonalCheck[ROWS][COLUMNS * 3] = {};
 int tempHorizontalRow[COLUMNS * 3];
 
+void ReverseLights(int column);
+void RotateLeft(int row);
+bool makeMove(Move m, int column, int row);
+void winSequence();
+void resetGame();
+void switchPlayer();
+void copyRow(int row);
+void copyColumn(int column);
+void ReverseLights(int column);
+void RotateLeft(int row);
+void RotateRight(int row);
+bool AddPiece(int column);
+int checkifArrayContainsFour(int temparr[]);
+void copyBigHorizontal(int row);
+void isGameWon();
+
+
 void setup() {
   // put your setup code here, to run once:
   clearGameState();
@@ -25,15 +42,21 @@ void clearGameState(){
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  Serial.println(millis());
-  for(int i=0; i < 100; i ++){
-    isGameWon();
+  while(!isGameWon()){
+    bool validMove = false;
+    while(!validMove){
+      //prompt user for Move
+      validMove = makeMove(Move move, int FILLER, int FILLER);
+
+    }
+    switchPlayer();
   }
-  Serial.println(millis());
+  winSequence();
+  resetGame();
 }
 
-void makeMove(Move m, int column, int row) {
+bool makeMove(Move m, int column, int row) {
+  bool validMove = true;
   switch (m) {
     case reverse:
       ReverseLights(column);
@@ -45,15 +68,10 @@ void makeMove(Move m, int column, int row) {
       RotateRight(row);
       break;
     case add:
-      AddPiece(column);
+      validMove = AddPiece(column);
       break;
   }
-  isGameWon();
-  if (!gameState == playing) {
-    //finish this
-  }
-  switchPlayer();
-
+  return validMove;
 }
 
 void winSequence() {
@@ -122,13 +140,21 @@ void RotateRight(int row) {
   arr[row][0] = temprow[COLUMNS - 1];
 }
 
-void AddPiece(int column) {
+/*
+ Returns true if valid move, false if the column is full already
+*/
+bool AddPiece(int column) {
+  //TODO WHAT IF THEY ADD A PIECE TO A FULL COLUMN?!
   for (int i = 5; i >= 0; i --) {
     if (arr[i][column] == 0) {
+      if(i==0){
+        return false;
+      }
       arr[i][column] = true;
     }
     break;
   }
+  return true;
 }
 
 //int count(int temparr[], int val) {
