@@ -9,6 +9,9 @@ int LIGHTS_DELTA = -1 * (SHIFT_DATA - LIGHTS_DATA);
 int LIGHTS_SHOWTIME = 200;
 int LIGHTS_OE = SCL; //A4 or A5
 
+int PIN_JOYSTICKX = A1;
+int PIN_JOYSTICKY = A2;
+
 int LIGHTS_ROWPINS[6] = {8,2,10,4,9,3};
 
 int buttonReads[8];
@@ -91,15 +94,32 @@ void lights_drawRow(int rowPin) { //If flashing, add clears to 0b11111111 and 0b
   pinMode(rowPin, INPUT);
 }
 
-int led_fullBoard[6][8] = {{0,1,0,0,0,0,0,0},
+int arr[6][8] = {{0,1,0,0,0,0,0,0},
                            {0,0,0,0,0,0,0,0},
                            {0,0,0,0,0,0,0,0},
                            {0,0,0,0,2,0,0,0},
                            {0,0,0,0,0,0,0,0},
                            {1,2,1,2,1,2,1,2}};
+
+/*int arr[6][8] = {{1,1,1,1,1,1,1,1},
+                  {1,1,1,1,1,1,1,1},
+                  {1,1,1,1,1,1,1,1},
+                  {1,1,1,1,1,1,1,1},
+                  {1,1,1,1,1,1,1,1},
+                  {1,1,1,1,1,1,1,1}};*/
+
+/*
+ * int arr[6][8] = {{2,2,2,2,2,2,2,2},
+                  {2,2,2,2,2,2,2,2},
+                  {2,2,2,2,2,2,2,2},
+                  {2,2,2,2,2,2,2,2},
+                  {2,2,2,2,2,2,2,2},
+                  {2,2,2,2,2,2,2,2}};
+ */
+
 void lights_drawBoard() {
   for (int rNum = 0; rNum < 6; rNum++) {
-    memcpy(led_activeRow, led_fullBoard[rNum], sizeof(led_fullBoard[rNum][0])*8); //led_activeRow = led_fullBoard[rNum];
+    memcpy(led_activeRow, arr[rNum], sizeof(arr[rNum][0])*8); //led_activeRow = led_fullBoard[rNum];
     lights_drawRow(LIGHTS_ROWPINS[rNum]);
   }
 }
@@ -109,17 +129,26 @@ void readButtons() { //Should debounce
     registerSingle(bNum);
     int readVal = digitalRead(PIN_BTN);
     if (readVal != buttonReads[bNum]) {
-      delay(15);
+      delay(15); //SHOULD FIX THIS
       readVal = digitalRead(PIN_BTN);
     }
     buttonReads[bNum] = readVal;
   }
 }
 
-bool loopDone = true;
+int joystickX = 0;
+int joystickY = 0;
+void readJoystick() {
+  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -50, 50);
+  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -50, 50);
+}
+
 
   int counterx = 0;
 void loop() {
+  /*lights_drawBoard();
+  delayMicroseconds(2);
+  return;*/
   // put your main code here, to run repeatedly:
   //Serial.println(digitalRead(10));
   /*readButtons();
@@ -135,8 +164,6 @@ void loop() {
   digitalWrite(0, LOW);
   registerSingle(2, LIGHTS_DELTA);
   return;*/
-  if (!loopDone) return;
-  loopDone = false;
     for (int rep=0; rep<1; rep++) {
       for (int rep2=0; rep2<8; rep2++) {
           led_activeRow[0] = 0;
@@ -164,7 +191,6 @@ void loop() {
       }
     //}
     delayMicroseconds(1);
-    loopDone = true;
     //delay(50000);
   }
 }
