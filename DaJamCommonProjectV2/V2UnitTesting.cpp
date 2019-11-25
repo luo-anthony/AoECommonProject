@@ -1,3 +1,7 @@
+#include<iostream>
+
+using namespace std;
+
 const int ROWS = 6;
 const int COLUMNS = 8;
 int arr[ROWS][COLUMNS] = {};
@@ -10,43 +14,158 @@ GameState gameState = playing;
 int horizontalDiagonalCheck[ROWS][COLUMNS * 3] = {};
 int tempHorizontalRow[COLUMNS * 3];
 
-void setup() {
-  // put your setup code here, to run once:
+//Terribly Written "Unit-Testing" Program
+//don't flame Anthony he's a Java person not a C++ person
+//also standard libraries don't work on Arduino or something so he had to code all the stuff
+int main()
+{
+  std::cout << std::boolalpha;
+
+  cout << "Check Win/Loss/Tie/Play State Passed?" << "\n";
+  cout << checkGameStates() << "\n";
+
+  cout << "Check Clear Game State Passed?" << "\n";
   clearGameState();
-  Serial.begin(9600);
+  cout << checkClearMethod() << "\n";
+
+
+
+
+  return 0;
 }
 
+//test helper functions
+bool areBoardsEqual(int arrone[][], int arrtwo[][]) {
+  for (int i = 0; i < COLUMNS; i += 1) {
+    for (int j = 0; j < ROWS; j += 1) {
+      if(arrone[j][i] != arrtwo[j][i]){
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+//begin test methods
+bool checkClearMethod(){
+  for (int i = 0; i < COLUMNS; i += 1) {
+    for (int j = 0; j < ROWS; j += 1) {
+      if(arr[j][i] !=0){
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool checkReverseLights(){
+
+}
+
+bool checkGameStates(){
+  int tieTest[6][8] = { {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 2 } };
+
+  int vertTest[6][8] = { {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {1 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {2 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {2 , 2 , 0, 0 , 0 , 0 , 0, 0 } };
+
+  int horizontalTest[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 1 , 0 , 0 , 0, 0},
+  {0 , 1 , 1, 1 , 2 , 2 , 2, 2 } };
+
+  int diagonalTest[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 1 , 0, 0},
+  {0 , 0 , 0, 0 , 1 , 1 , 0, 0},
+  {0 , 0 , 0, 1 , 2 , 2 , 0, 0},
+  {0 , 0 , 1, 2 , 1 , 2 , 2, 0 } };
+
+  int noWin[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
+  {1 , 2 , 0, 0 , 0 , 0 , 0, 0},
+  {2 , 1 , 0, 2 , 1 , 2 , 0, 0},
+  {1 , 2 , 0, 1 , 1 , 2 , 2, 0 } };
+
+  bool failed = false;
+  arr = tieTest;
+  isGameWon();
+  if(gameState != tie){
+    cout << "Tie Scenario Failed" << "\n";
+    failed = true;
+  }
+
+  arr = vertTest;
+  isGameWon();
+  if(gameState != P1_won){
+    cout << "Vertical Win Failed" << "\n";
+    failed = true;
+  }
+
+  arr = horizontalTest;
+  isGameWon();
+  if(gameState !=  P2_won){
+    cout << "Horizontal Win Failed" << "\n";
+    failed = true;
+  }
+
+  arr = diagonalTest;
+  isGameWon();
+  if(gameState != P1_won){
+    cout << "Diagonal Win Failed" << "\n";
+    failed = true;
+  }
+
+  arr = noWin;
+  isGameWon();
+  if(gameState != playing){
+    cout << "Playing Condition Failed" << "\n";
+    failed=  true;
+  }
+
+
+  return failed;
+}
+
+
+
+
+//begin actual methods to test
+
 void clearGameState(){
-    for (int i = 0; i < COLUMNS; i += 1) {
+  for (int i = 0; i < COLUMNS; i += 1) {
     for (int j = 0; j < ROWS; j += 1) {
       arr[j][i] = 0;
     }
   }
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  Serial.println(millis());
-  for(int i=0; i < 100; i ++){
-    isGameWon();
-  }
-  Serial.println(millis());
-}
 
 void makeMove(Move m, int column, int row) {
   switch (m) {
     case reverse:
-      ReverseLights(column);
-      break;
+    ReverseLights(column);
+    break;
     case rotate_left:
-      RotateLeft(row);
-      break;
+    RotateLeft(row);
+    break;
     case rotate_right:
-      RotateRight(row);
-      break;
+    RotateRight(row);
+    break;
     case add:
-      AddPiece(column);
-      break;
+    AddPiece(column);
+    break;
   }
   isGameWon();
   if (!gameState == playing) {
@@ -131,31 +250,16 @@ void AddPiece(int column) {
   }
 }
 
-//int count(int temparr[], int val) {
-//  int count = 0;
-//  int n = sizeof(temparr) / sizeof(temparr[0]);
-//  for (int i = 0; i < n; i ++) {
-//    if (temparr[i] == val) {
-//      count++;
-//    }
-//  }
-//  return count;
-//}
-
-
-/*
-   Returns 0 if neither player has 4, returns 1 if player 1 has 4 in a row, returns 2 if player 2 has 4 in a row
-*/
 int checkifArrayContainsFour(int temparr[]) {
   int output = 0;
   int n = sizeof(temparr) / sizeof(temparr[0]);
   for (int i = 0; i < n - 3; i ++) {
     if ((temparr[i] == temparr[i + 1]) && (temparr[i] == temparr[i + 2]) && (temparr[i] == temparr[i + 3]) && (temparr[i] == temparr[i + 4])) { //yes this is stupid code but whatever I don't want to use standard library lol
-      output = temparr[i];
-      break;
-    }
+    output = temparr[i];
+    break;
   }
-  return output;
+}
+return output;
 }
 
 void copyBigHorizontal(int row) {
