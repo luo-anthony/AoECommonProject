@@ -49,6 +49,18 @@ bool areBoardsEqual(int arrone[ROWS][COLUMNS], int arrtwo[ROWS][COLUMNS]) {
   return true;
 }
 
+void copyArrayState(int fromArr[ROWS][COLUMNS]){
+  for (int i = 0; i < COLUMNS; i += 1) {
+    for (int j = 0; j < ROWS; j += 1) {
+      arr[j][i] = fromArr[j][i];
+    }
+  }
+}
+
+bool checkAddPiece(){
+
+}
+
 //begin test methods
 bool checkClearMethod(){
   for (int i = 0; i < COLUMNS; i += 1) {
@@ -77,7 +89,7 @@ bool checkRotateLights(){
   {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
   {1 , 1 , 2, 1 , 2 , 1 , 2, 2 } };
 
-  arr = rotateLeft;
+  copyArrayState(rotateLeft);
   makeMove(rotate_left, 0, 5);
   isGameWon();
 
@@ -101,7 +113,8 @@ bool checkRotateLights(){
   {1 , 2 , 0, 0 , 0 , 0 , 0, 0},
   {2 , 1 , 0, 2 , 1 , 2 , 0, 0},
   {1 , 2 , 0, 1 , 1 , 2 , 2, 0 } };
-  arr = rotateRight;
+
+  copyArrayState(rotateRight);
   makeMove(rotate_right, 0, 4);
   isGameWon();
   if(gameState == playing && areBoardsEqual(arr, rotateRightOut)){
@@ -123,7 +136,7 @@ bool checkReverseLights(){
   {0 , 2 , 1, 0 , 0 , 0 , 1, 2},
   {2 , 2 , 2, 1 , 1 , 1 , 2, 1},
   {2 , 1 , 1, 1 , 2 , 2 , 1, 2} };
-  arr = flipTest;
+  copyArrayState(flipTest);
   makeMove(reverse, 1, 0);
   int flipTestOut[6][8] = { {0 , 0 , 0, 0 , 0 , 0 , 0, 0},
   {0 , 0 , 0, 0 , 0 , 0 , 0, 0},

@@ -47,7 +47,9 @@ void loop() {
     while(!validMove){
       //prompt user for Move
       validMove = makeMove(Move move, int FILLER, int FILLER);
-
+      if(!validMove){
+        //flash lights in certain "noob sequence"
+      }
     }
     switchPlayer();
   }
