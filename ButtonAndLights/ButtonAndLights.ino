@@ -143,6 +143,20 @@ void readJoystick() {
   joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -50, 50);
 }
 
+void resetBoard() {
+  for (int yIdx = 0; yIdx < 6; yIdx++) {
+    for (int xIdx = 0; xIdx < 8; xIdx++) {
+      arr[yIdx][xIdx] = 0;
+    }
+  }
+}
+
+int clampRegion(int input, int maxVal) { //maxVal is actually not allowed, it equals zero
+  if (input >= maxVal) return input - maxVal;
+  if (input < 0) return input + maxVal;
+  return input;
+}
+
 
   int counterx = 0;
 void loop() {
@@ -164,7 +178,8 @@ void loop() {
   digitalWrite(0, LOW);
   registerSingle(2, LIGHTS_DELTA);
   return;*/
-    for (int rep=0; rep<1; rep++) {
+    /* Spiral Animation
+     * for (int rep=0; rep<1; rep++) {
       for (int rep2=0; rep2<8; rep2++) {
           led_activeRow[0] = 0;
           led_activeRow[1] = 0;
@@ -189,8 +204,30 @@ void loop() {
 
           Serial.println(counterx);
       }
-    //}
+    //}*/
+
+    //resetBoard();
+    counterx += 1;
+    if (counterx >= 8) counterx = 0;
+    for (int colIdx = 0; colIdx < 1; colIdx++) {
+      resetBoard();
+      arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 0, 8)] = 1;
+      arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 4, 8)] = 2;
+      arr[clampRegion(colIdx + 1, 6)][clampRegion(counterx + 1, 8)] = 1;
+      arr[clampRegion(colIdx + 1, 6)][clampRegion(counterx + 5, 8)] = 2;
+      arr[clampRegion(colIdx + 2, 6)][clampRegion(counterx + 2, 8)] = 1;
+      arr[clampRegion(colIdx + 2, 6)][clampRegion(counterx + 6, 8)] = 2;
+      arr[clampRegion(colIdx + 3, 6)][clampRegion(counterx + 3, 8)] = 1;
+      arr[clampRegion(colIdx + 3, 6)][clampRegion(counterx + 7, 8)] = 2;
+      arr[clampRegion(colIdx + 4, 6)][clampRegion(counterx + 4, 8)] = 1;
+      arr[clampRegion(colIdx + 4, 6)][clampRegion(counterx + 8, 8)] = 2;
+      arr[clampRegion(colIdx + 5, 6)][clampRegion(counterx + 5, 8)] = 1;
+      arr[clampRegion(colIdx + 5, 6)][clampRegion(counterx + 9 - 8, 8)] = 2;
+      for (int reps=0; reps<20; reps++) {
+        lights_drawBoard();
+      }
+    }
     delayMicroseconds(1);
     //delay(50000);
-  }
+  //}
 }
