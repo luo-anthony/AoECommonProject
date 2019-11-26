@@ -1,6 +1,7 @@
 const int ROWS = 6;
 const int COLUMNS = 8;
-int arr[ROWS][COLUMNS] = {};
+int arr[ROWS][COLUMNS] = {}; //the lighting state of the gameState
+int gameStateArr[ROWS][COLUMNS] = {};
 enum Move {reverse, rotate_left, rotate_right, add, nomove};
 enum GameState {playing, P1_won, P2_won, tie};
 enum JoystickMove = {up, down, left, right, center};
@@ -150,6 +151,9 @@ void readButtons() { //Should debounce
   }
 }
 
+
+
+
 int joystickX = 0;
 int joystickY = 0;
 void readJoystick() {
@@ -157,12 +161,31 @@ void readJoystick() {
   joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -50, 50);
 }
 
+// ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
+
 //start backend code
+
+void copytoArrayFrom(int fromArr[ROWS][COLUMNS]){
+  for (int i = 0; i < COLUMNS; i += 1) {
+    for (int j = 0; j < ROWS; j += 1) {
+      arr[j][i] = fromArr[j][i];
+    }
+  }
+}
+
+void copytoGameArrayFrom(int fromArr[ROWS][COLUMNS]){
+  for (int i = 0; i < COLUMNS; i += 1) {
+    for (int j = 0; j < ROWS; j += 1) {
+      gameStateArr[j][i] = fromArr[j][i];
+    }
+  }
+}
 
 void clearGameState(){
   for (int i = 0; i < COLUMNS; i += 1) {
     for (int j = 0; j < ROWS; j += 1) {
       arr[j][i] = 0;
+      gameStateArr[j][i] = 0;
     }
   }
 }
@@ -172,264 +195,333 @@ int move_column = -1;
 int move_row = -1;
 void loop() {
   while(!isGameWon()){
+    lights_drawBoard();
     bool validMove = false;
     while(!validMove){
+      lights_drawBoard();
       while(nextMove == nomove){
+        lights_drawBoard();
         parseInputs();
-        makeMove(nextMove, move_column, move_row)
+        validMove = makeMove(nextMove, move_column, move_row)
+        if(!validMove){
+          resetInputs();
+          nextMove = nomove;
+        }
+      }
+      lights_drawBoard();
+      resetInputs();
+      switchPlayer();
     }
-    resetInputs();
-    lights_drawBoard();
-    switchPlayer();
+    winSequence();
+    resetGame();
   }
-  winSequence();
-  resetGame();
-}
 
-bool joystickTriggered = false;
-JoystickMove last_partialDirection = center;
-int boardColumnPointer = 0;
-int boardRowPointer = 0;
+  bool joystickTriggered = false;
+  JoystickMove last_partialDirection = center;
+  int boardColumnPointer = 0;
+  int boardRowPointer = 0;
 
-bool RotateActivated = false;
-bool FlipActivated = false;
-bool RotateButtonLastState =false;
-bool FlipButtonLastState = false;
-bool moveConfirmed = false;
+  bool RotateActivated = false;
+  bool FlipActivated = false;
+  bool RotateButtonLastState =false;
+  bool FlipButtonLastState = false;
+  bool moveConfirmed = false;
 
-void resetInputs(){
-  move_row = -1;
-  move_column = -1;
-  joystickTriggered = false;
-  last_partialDirection = center;
-  nextMove = nomove;
-  boardColumnPointer = 0;
-  boardRowPointer = 0;
-  RotateActivated = false;
-  FlipActivated = false;
-  RotateButtonLastState = false;
-  FlipButtonLastState = false;
-}
-
-
-void parseInputs(){
-  int column = -1;
-  readButtons();
-  for(int i=0; i < 8; i ++){
-    if(buttonReads[i] == 1){
-      column = i;
-      nextMove = add;
-      break;
-    }
-  }
-  if(!rotateButton){
+  void resetInputs(){
+    move_row = -1;
+    move_column = -1;
+    joystickTriggered = false;
+    last_partialDirection = center;
+    nextMove = nomove;
+    boardColumnPointer = 0;
+    boardRowPointer = 0;
+    RotateActivated = false;
+    FlipActivated = false;
     RotateButtonLastState = false;
-  }
-  if(!flipButton){
     FlipButtonLastState = false;
   }
 
-  if(rotateButton && !RotateButtonLastState && !RotateActivated){
-    RotateActivated = true;
-    RotateButtonLastState = true;
-  }
-  else if (flipButton && !FlipButtonLastState && !FlipActivated){
-    FlipActivated = true;
-    FlipButtonLastState = true;
-  }
-  else if(rotateButton && !RotateButtonLastState && RotateActivated){
-    moveConfirmed = true;
-  }
-  else if(flipButton && !FlipButtonLastState && FlipActivated){
-    moveConfirmed = true;
-  }
 
-  if(column ==-1){
-    if(RotateActivated && !moveConfirmed){
-      JoystickMove direction = parseJoystickInputs();
-      if(direction == up){
-        boardRowPointer = boardRowPointer + 1 % 6;
+  void parseInputs(){
+    int column = -1;
+    readButtons();
+    for(int i=0; i < 8; i ++){
+      if(buttonReads[i] == 1){
+        column = i;
+        nextMove = add;
+        break;
       }
-      else if(direction == down){
-        boardRowPointer--;
-        if(boardRowPointer <0){
-          boardRowPointer = 5;
+    }
+    if(!rotateButton){
+      RotateButtonLastState = false;
+    }
+    if(!flipButton){
+      FlipButtonLastState = false;
+    }
+
+    if(rotateButton && !RotateButtonLastState && !RotateActivated){
+      RotateActivated = true;
+      RotateButtonLastState = true;
+    }
+    else if (flipButton && !FlipButtonLastState && !FlipActivated){
+      FlipActivated = true;
+      FlipButtonLastState = true;
+    }
+    else if(rotateButton && !RotateButtonLastState && RotateActivated){
+      moveConfirmed = true;
+    }
+    else if(flipButton && !FlipButtonLastState && FlipActivated){
+      moveConfirmed = true;
+    }
+
+    if(column ==-1){
+      if(RotateActivated && !moveConfirmed){
+        animateFlashRow(boardRowPointer);
+        JoystickMove direction = parseJoystickInputs();
+        if(direction == up){
+          boardRowPointer = boardRowPointer + 1 % 6;
+        }
+        else if(direction == down){
+          boardRowPointer--;
+          if(boardRowPointer <0){
+            boardRowPointer = 5;
+          }
+        }
+        animateFlashRow(boardRowPointer);
+
+      }
+      else if(FlipActivated && !moveConfirmed){
+        animateFlashColumn(boardColumnPointer);
+        JoystickMove direction = parseJoystickInputs();
+        if(direction == right){
+          boardColumnPointer = boardColumnPointer + 1 % 8;
+        }
+        else if(direction == left){
+          boardColumnPointer--;
+          if(boardColumnPointer <0){
+            boardColumnPointer = 7;
+          }
+        }
+        animateFlashColumn(boardColumnPointer);
+      }
+      else if(RotateActivated && moveConfirmed){
+        JoystickMove direction = parseJoystickInputs();
+        if(direction == right){
+          nextMove = rotate_right;
+          move_row = boardRowPointer;
+        }
+        else if(direction == left){
+          nextMove = rotate_left;
+          move_row = boardRowPointer;
         }
       }
-    }
-    else if(FlipActivated && !moveConfirmed){
-      JoystickMove direction = parseJoystickInputs();
-      if(direction == right){
-        boardColumnPointer = boardColumnPointer + 1 % 8;
+      else if(FlipActivated && moveConfirmed){
+        nextMove = reverse;
+        move_column = boardColumnPointer;
       }
-      else if(direction == left){
-        boardColumnPointer--;
-        if(boardColumnPointer <0){
-          boardColumnPointer = 7;
+    }
+    delayAndLight(1);
+  }
+
+  JoystickMove parseJoystickInputs(){
+    readJoystick();
+    if(!joystickTriggered){
+      if(joystickX >40){
+        joystickTriggered = true;
+        last_partialDirection = right;
+      }
+      else if(joystickX < -40){
+        joystickTriggered = true;
+        last_partialDirection = left;
+      }
+      else if(joystickY > 40){
+        joystickTriggered = true;
+        last_partialDirection = up;
+      }
+      else if(joystickY < -40){
+        joystickTriggered = true;
+        last_partialDirection = down;
+      }
+    }
+    else if(joystickY < 15 && joystickY > -15 && joystickX < 15 && joystickX > -15){
+      JoystickMove output = last_partialDirection;
+      joystickTriggered = false;
+      last_partialDirection = center;
+      return output;
+    }
+    return center;
+  }
+
+  void animateFlashRow(int row){
+    copytoGameArrayFrom(arr); //create backup of the game state
+    int numFlashes = 3;
+    for(int j = 0; j < numFlashes; j++){
+      for(int i =0; i < 8; i ++){
+        arr[row][i] = player;
+      }
+      delayAndLight(150); //to be adjusted
+      for(int i =0; i < 8; i ++){
+        arr[row][i] = 0;
+      }
+      delayAndLight(100);
+    }
+    copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
+  }
+
+  void animateFlashColumn(int column){
+    copytoGameArrayFrom(arr); //create backup of the game state
+    int numFlashes = 3;
+    for(int j = 0; j < numFlashes; j++){
+      for(int i =0; i < 6; i ++){
+        arr[i][column] = player;
+      }
+      delayAndLight(150); //to be adjusted
+      for(int i =0; i < 7; i ++){
+        arr[][column] = 0;
+      }
+      delayAndLight(100);
+    }
+    copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
+
+  }
+
+  void delayAndLight(int time){ //time in milliseconds
+    for(int i=0; i < time; i++){
+      lights_drawBoard();
+    }
+  }
+
+  bool makeMove(Move m, int column, int row) {
+    bool validMove = true;
+    switch (m) {
+      case reverse:
+      ReverseLights(column);
+      break;
+      case rotate_left:
+      RotateLeft(row);
+      break;
+      case rotate_right:
+      RotateRight(row);
+      break;
+      case add:
+      validMove = AddPiece(column);
+      break;
+    }
+    return validMove;
+  }
+
+  void winSequence() {
+
+  }
+
+  void resetGame() {
+    clearGameState();
+    int player = 1;
+    gameState = playing;
+    delayAndLight(100);
+  }
+
+  void switchPlayer() {
+    if (player == 1) {
+      player = 2;
+    }
+    else {
+      player = 1;
+    }
+    delayAndLight(5);
+  }
+
+  void copyRow(int row) {
+    for (int i = 0; i < COLUMNS; i ++) {
+      temprow[i] = arr[row][i];
+    }
+  }
+
+  void copyColumn(int column) {
+    for (int i = 0; i < ROWS; i ++) {
+      tempcolumn[i] = arr[i][column];
+    }
+  }
+
+  void ReverseLights(int column) {
+    delayAndLight(50);
+    copyColumn(column);
+    int n = sizeof(tempcolumn) / sizeof(tempcolumn[0]);
+    int numzeros = (tempcolumn, tempcolumn + n, 2); //wat is this
+    int onetwos[ROWS - numzeros];
+    for (int i = numzeros; i < ROWS; i++) {
+      onetwos[i - numzeros] = tempcolumn[i];
+    }
+    for (int i = 0; i < ROWS; i ++) {
+      arr[i][column] = 0;
+    }
+    for (int i = 0; i < ROWS - numzeros; i ++) {
+      arr[ROWS - 1 - i][column] = onetwos[i];
+    }
+    delayAndLight(200);
+    //NEED TO CHECK IF THIS WORKS LOL
+  }
+
+
+  void RotateLeft(int row) {
+    delayAndLight(50);
+    copyRow(row);
+    for (int i = 0; i < 7; i ++) {
+      arr[row][i] = temprow[i + 1];
+    }
+    arr[row][COLUMNS - 1] = temprow[0];
+    delayAndLight(50);
+  }
+
+  void RotateRight(int row) {
+    delayAndLight(50);
+    copyRow(row);
+    for (int i = 1; i < COLUMNS; i ++) {
+      arr[row][i] = temprow[i - 1];
+    }
+    arr[row][0] = temprow[COLUMNS - 1];
+    delayAndLight(50);
+  }
+
+
+  /*
+  Returns true if valid move, false if the column is full already
+  */
+  bool AddPiece(int column) {
+    delayAndLight(200);
+    int piecePosition = -1;
+    for (int i = 5; i >= 0; i --) {
+      delayAndLight(1);
+      if (arr[i][column] == 0) {
+        if(i==0){
+          return false;
         }
+        gameStateArr[i][column] = player;
+        piecePosition = i;
+        break;
       }
     }
-    else if(RotateActivated && moveConfirmed){
-      JoystickMove direction = parseJoystickInputs();
-      if(direction == right){
-        nextMove = rotate_right;
-        move_row = boardRowPointer;
-      }
-      else if(direction == left){
-        nextMove = rotate_left;
-        move_row = boardRowPointer;
-      }
+    for(int i=0; i > piecePosition; i--){
+      arr[i][column] = player;
+      delayAndLight(500);
+      arr[i][column] = 0;
+      delayAndLight(20);
     }
-    else if(FlipActivated && moveConfirmed){
-      nextMove = reverse;
-      move_column = boardColumnPointer;
-    }
+    copytoArrayFrom(gameStateArr);
+    delayAndLight(1000);
+    return true;
   }
-  lights_drawBoard();
-}
 
-JoystickMove parseJoystickInputs(){
-  readJoystick();
-  if(!joystickTriggered){
-    if(joystickX >40){
-      joystickTriggered = true;
-      last_partialDirection = right;
-    }
-    else if(joystickX < -40){
-      joystickTriggered = true;
-      last_partialDirection = left;
-    }
-    else if(joystickY > 40){
-      joystickTriggered = true;
-      last_partialDirection = up;
-    }
-    else if(joystickY < -40){
-      joystickTriggered = true;
-      last_partialDirection = down;
+  int checkifArrayContainsFour(int temparr[]) {
+    int output = 0;
+    int n = sizeof(temparr) / sizeof(temparr[0]);
+    for (int i = 0; i < n - 3; i ++) {
+      if ((temparr[i] == temparr[i + 1]) && (temparr[i] == temparr[i + 2]) && (temparr[i] == temparr[i + 3]) && (temparr[i] == temparr[i + 4])) { //yes this is stupid code but whatever I don't want to use standard library lol
+      output = temparr[i];
+      break;
     }
   }
-  else if(joystickY < 15 && joystickY > -15 && joystickX < 15 && joystickX > -15){
-    JoystickMove output = last_partialDirection;
-    joystickTriggered = false;
-    last_partialDirection = center;
-    return output;
-  }
-  return center;
-}
-
-
-bool makeMove(Move m, int column, int row) {
-  bool validMove = true;
-  switch (m) {
-    case reverse:
-    ReverseLights(column);
-    break;
-    case rotate_left:
-    RotateLeft(row);
-    break;
-    case rotate_right:
-    RotateRight(row);
-    break;
-    case add:
-    validMove = AddPiece(column);
-    break;
-  }
-  return validMove;
-}
-
-void winSequence() {
-
-}
-
-void resetGame() {
-  clearGameState();
-  int player = 1;
-  gameState = playing;
-
-}
-
-void switchPlayer() {
-  if (player == 1) {
-    player = 2;
-  }
-  else {
-    player = 1;
-  }
-}
-
-void copyRow(int row) {
-  for (int i = 0; i < COLUMNS; i ++) {
-    temprow[i] = arr[row][i];
-  }
-}
-
-void copyColumn(int column) {
-  for (int i = 0; i < ROWS; i ++) {
-    tempcolumn[i] = arr[i][column];
-  }
-}
-
-void ReverseLights(int column) {
-  copyColumn(column);
-  int n = sizeof(tempcolumn) / sizeof(tempcolumn[0]);
-  int numzeros = (tempcolumn, tempcolumn + n, 2);
-  int onetwos[ROWS - numzeros];
-  for (int i = numzeros; i < ROWS; i++) {
-    onetwos[i - numzeros] = tempcolumn[i];
-  }
-  for (int i = 0; i < ROWS; i ++) {
-    arr[i][column] = 0;
-  }
-  for (int i = 0; i < ROWS - numzeros; i ++) {
-    arr[ROWS - 1 - i][column] = onetwos[i];
-  }
-  //NEED TO CHECK IF THIS WORKS LOL
-}
-
-
-void RotateLeft(int row) {
-  copyRow(row);
-  for (int i = 0; i < 7; i ++) {
-    arr[row][i] = temprow[i + 1];
-  }
-  arr[row][COLUMNS - 1] = temprow[0];
-}
-
-void RotateRight(int row) {
-  copyRow(row);
-  for (int i = 1; i < COLUMNS; i ++) {
-    arr[row][i] = temprow[i - 1];
-  }
-  arr[row][0] = temprow[COLUMNS - 1];
-}
-
-/*
-Returns true if valid move, false if the column is full already
-*/
-bool AddPiece(int column) {
-  //TODO WHAT IF THEY ADD A PIECE TO A FULL COLUMN?!
-  for (int i = 5; i >= 0; i --) {
-    if (arr[i][column] == 0) {
-      if(i==0){
-        return false;
-      }
-      arr[i][column] = true;
-    }
-    break;
-  }
-  return true;
-}
-
-int checkifArrayContainsFour(int temparr[]) {
-  int output = 0;
-  int n = sizeof(temparr) / sizeof(temparr[0]);
-  for (int i = 0; i < n - 3; i ++) {
-    if ((temparr[i] == temparr[i + 1]) && (temparr[i] == temparr[i + 2]) && (temparr[i] == temparr[i + 3]) && (temparr[i] == temparr[i + 4])) { //yes this is stupid code but whatever I don't want to use standard library lol
-    output = temparr[i];
-    break;
-  }
-}
-return output;
+  return output;
 }
 
 void copyBigHorizontal(int row) {
@@ -439,6 +531,7 @@ void copyBigHorizontal(int row) {
 }
 
 void isGameWon() {
+  delayAndLight(10);
   //checking vertical
   bool PlayerOneWon = false;
   bool PlayerTwoWon = false;
@@ -451,6 +544,7 @@ void isGameWon() {
       PlayerTwoWon = true;
     }
   }
+  delayAndLight(2);
 
   //checking horizontal
 
@@ -462,6 +556,7 @@ void isGameWon() {
       }
     }
   }
+  delayAndLight(2);
 
   //check each row
   for (int i = 0; i < ROWS; i++) {
@@ -481,6 +576,7 @@ void isGameWon() {
 
     }
   }
+  delayAndLight(2);
 
   //check diagonal
   for (int i = 0; i < (COLUMNS * 3) - 3; i++) {
@@ -498,6 +594,8 @@ void isGameWon() {
       }
     }
   }
+  delayAndLight(2);
+
 
   for (int i = 3; i < (COLUMNS * 3); i++) {
     for (int j = 3; j < ROWS; j++) {
@@ -514,6 +612,8 @@ void isGameWon() {
       }
     }
   }
+  delayAndLight(2);
+
 
   if (PlayerOneWon == true && PlayerTwoWon == true) {
     gameState = tie;
@@ -524,10 +624,5 @@ void isGameWon() {
   if (PlayerTwoWon == true) {
     gameState = P2_won;
   }
-
-
-
-
-
-
+  delayAndLight(5);
 }
