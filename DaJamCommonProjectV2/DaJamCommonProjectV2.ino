@@ -443,11 +443,20 @@ void loop() {
     }
   }
 
+  int countOccurences(int array[], int num){ //test this function
+    int count =0;
+    int n = sizeof(array) / sizeof(array[0]);
+    for(int i = 0; i < n; i++){
+      if(arr[i == num]){
+        count++;
+      }
+    }
+    return count;
+  }
   void ReverseLights(int column) {
     delayAndLight(50);
     copyColumn(column);
-    int n = sizeof(tempcolumn) / sizeof(tempcolumn[0]);
-    int numzeros = (tempcolumn, tempcolumn + n, 2); //wat is this
+    int numzeros = countOccurences(tempcolumn, 0);
     int onetwos[ROWS - numzeros];
     for (int i = numzeros; i < ROWS; i++) {
       onetwos[i - numzeros] = tempcolumn[i];
@@ -455,10 +464,20 @@ void loop() {
     for (int i = 0; i < ROWS; i ++) {
       arr[i][column] = 0;
     }
+    //animate falling
+    for(int i = 0; i < numzeros; i ++){
+      for(int j =0; j < ROWS-numzeros; j ++){
+        arr[i][column] = onetwos[j];
+      }
+      delayAndLight(500);
+      for (int i = 0; i < ROWS; i ++) {
+        arr[i][column] = 0;
+      }
+    }
     for (int i = 0; i < ROWS - numzeros; i ++) {
       arr[ROWS - 1 - i][column] = onetwos[i];
     }
-    delayAndLight(200);
+    delayAndLight(1000);
     //NEED TO CHECK IF THIS WORKS LOL
   }
 
@@ -470,7 +489,7 @@ void loop() {
       arr[row][i] = temprow[i + 1];
     }
     arr[row][COLUMNS - 1] = temprow[0];
-    delayAndLight(50);
+    delayAndLight(500);
   }
 
   void RotateRight(int row) {
@@ -480,7 +499,7 @@ void loop() {
       arr[row][i] = temprow[i - 1];
     }
     arr[row][0] = temprow[COLUMNS - 1];
-    delayAndLight(50);
+    delayAndLight(500);
   }
 
 
@@ -505,7 +524,7 @@ void loop() {
       arr[i][column] = player;
       delayAndLight(500);
       arr[i][column] = 0;
-      delayAndLight(20);
+      delayAndLight(10);
     }
     copytoArrayFrom(gameStateArr);
     delayAndLight(1000);
