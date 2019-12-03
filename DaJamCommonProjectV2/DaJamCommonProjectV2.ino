@@ -12,8 +12,7 @@ GameState gameState = playing;
 int horizontalDiagonalCheck[ROWS][COLUMNS * 3] = {};
 int tempHorizontalRow[COLUMNS * 3];
 
-int PIN_BTN1 = A1;
-int PIN_BTN2 = A2;
+int PIN_BTN = A0;
 int SHIFT_DATA = 11;
 int SHIFT_CLK = 12;
 int SHIFT_LATCH = 13;
@@ -24,16 +23,14 @@ int LIGHTS_DELTA = -1 * (SHIFT_DATA - LIGHTS_DATA);
 int LIGHTS_SHOWTIME = 200;
 int LIGHTS_OE = SCL; //A4 or A5
 
-int PIN_JOYSTICKX = A3;
-int PIN_JOYSTICKY = A4;
+int PIN_JOYSTICKX = A1;
+int PIN_JOYSTICKY = A2;
 
 int LIGHTS_ROWPINS[6] = {8, 2, 10, 4, 9, 3};
 
-int buttonReads[10];
+int buttonReads[8];
 bool flipButton = false;
 bool rotateButton = false;
-
-bool redTurn = false;
 
 //void ReverseLights(int column);
 //void RotateLeft(int row);
@@ -59,8 +56,7 @@ void setup() {
   clearGameState();
   Serial.begin(9600);
   // put your setup code here, to run once:
-  pinMode(PIN_BTN1, INPUT);
-  pinMode(PIN_BTN2, INPUT);
+  pinMode(PIN_BTN, INPUT);
   pinMode(SHIFT_DATA, OUTPUT);
   pinMode(SHIFT_CLK, OUTPUT);
   pinMode(SHIFT_LATCH, OUTPUT);
@@ -99,14 +95,6 @@ void registerClearNot(int delta = 0) {
 void registerSingle(int bitNum, int delta = 0) {
   byte writeVal = 0;
   bitWrite(writeVal, bitNum, 1);
-  if (delta == 0) { //For player turn indicator
-    if (redTurn) {
-      bitWrite(writeVal, 6, 1);
-    }
-    else {
-      bitWrite(writeVal, 7, 1);
-    }
-  }
   registerWrite(writeVal, delta);
 }
 
@@ -154,16 +142,15 @@ void lights_drawBoard() {
 }
 
 void readButtons() { //Should debounce
-  for (int bNum = 0; bNum < 5; bNum++) {
+  for (int bNum = 0; bNum < 8; bNum++) {
     registerSingle(bNum);
-    int readVal = digitalRead(PIN_BTN1);
-    int readVal2 = digitalRead(PIN_BTN2);
-
+    int readVal = digitalRead(PIN_BTN);
+    if (readVal != buttonReads[bNum]) {
+      delay(15); //SHOULD FIX THIS
+      readVal = digitalRead(PIN_BTN);
+    }
     buttonReads[bNum] = readVal;
-    buttonReads[bNum + 5] = readVal2;
   }
-  flipButton = buttonReads[8];
-  rotateButton = buttonReads[9];
 }
 
 
@@ -172,8 +159,8 @@ void readButtons() { //Should debounce
 int joystickX = 0;
 int joystickY = 0;
 void readJoystick() {
-  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -90, 90);
-  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -90, 90);
+  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -50, 50);
+  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -50, 50);
 }
 
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
@@ -209,7 +196,7 @@ Move nextMove = nomove;
 int move_column = -1;
 int move_row = -1;
 void loop() {
-  while (gameState == playing) {
+  while (gameState = playing) {
     lights_drawBoard();
     bool validMove = false;
     while (!validMove) {
@@ -228,9 +215,10 @@ void loop() {
       resetInputs();
       switchPlayer();
     }
-    winSequence();
-    resetGame();
   }
+  delayAndLight(4000);
+  winSequence();
+  resetGame();
 }
 
 bool joystickTriggered = false;
@@ -376,7 +364,6 @@ void animateFlashRow(int row) {
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = player;
     }
-    //must keep parsing inputs 
     delayAndLight(150); //to be adjusted
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = 0;
@@ -429,13 +416,12 @@ bool makeMove(Move m, int column, int row) {
 }
 
 void winSequence() {
- //TODO - David code some fancy flash animation thanks
+  //TODO - David code some fancy flash animation thanks
 }
 
 void resetGame() {
   clearGameState();
   int player = 1;
-  redTurn = true;
   gameState = playing;
   delayAndLight(100);
 }
@@ -443,11 +429,9 @@ void resetGame() {
 void switchPlayer() {
   if (player == 1) {
     player = 2;
-    redTurn = false;
   }
   else {
     player = 1;
-    redTurn = true;
   }
   delayAndLight(5);
 }
@@ -528,18 +512,19 @@ void RotateRight(int row) {
   Returns true if valid move, false if the column is full already
 */
 bool AddPiece(int column) {
+  copytoGameArrayFrom(arr);
   delayAndLight(200);
   int piecePosition = -1;
   for (int i = 5; i >= 0; i --) {
     delayAndLight(1);
     if (arr[i][column] == 0) {
-      if (i == -1) {
-        return false;
-      }
       gameStateArr[i][column] = player;
       piecePosition = i;
       break;
     }
+  }
+  if (i == -1) {
+    return false;
   }
   for (int i = 0; i > piecePosition; i--) {
     arr[i][column] = player;
@@ -548,7 +533,7 @@ bool AddPiece(int column) {
     delayAndLight(10);
   }
   copytoArrayFrom(gameStateArr);
-  delayAndLight(1000);
+  delayAndLight(700);
   return true;
 }
 
