@@ -12,7 +12,8 @@ GameState gameState = playing;
 int horizontalDiagonalCheck[ROWS][COLUMNS * 3] = {};
 int tempHorizontalRow[COLUMNS * 3];
 
-int PIN_BTN = A0;
+int PIN_BTN1 = A0;
+int PIN_BTN2 = A3;
 int SHIFT_DATA = 11;
 int SHIFT_CLK = 12;
 int SHIFT_LATCH = 13;
@@ -28,7 +29,7 @@ int PIN_JOYSTICKY = A2;
 
 int LIGHTS_ROWPINS[6] = {8, 2, 10, 4, 9, 3};
 
-int buttonReads[8];
+int buttonReads[10];
 bool flipButton = false;
 bool rotateButton = false;
 
@@ -56,7 +57,8 @@ void setup() {
   clearGameState();
   Serial.begin(9600);
   // put your setup code here, to run once:
-  pinMode(PIN_BTN, INPUT);
+  pinMode(PIN_BTN1, INPUT);
+  pinMode(PIN_BTN2, INPUT);
   pinMode(SHIFT_DATA, OUTPUT);
   pinMode(SHIFT_CLK, OUTPUT);
   pinMode(SHIFT_LATCH, OUTPUT);
@@ -142,15 +144,16 @@ void lights_drawBoard() {
 }
 
 void readButtons() { //Should debounce
-  for (int bNum = 0; bNum < 8; bNum++) {
+  for (int bNum = 0; bNum < 5; bNum++) {
     registerSingle(bNum);
-    int readVal = digitalRead(PIN_BTN);
-    if (readVal != buttonReads[bNum]) {
-      delay(15); //SHOULD FIX THIS
-      readVal = digitalRead(PIN_BTN);
-    }
+    int readVal = digitalRead(PIN_BTN1);
+    int readVal2 = digitalRead(PIN_BTN2);
+
     buttonReads[bNum] = readVal;
+    buttonReads[bNum + 5] = readVal2;
   }
+  flipButton = buttonReads[8];
+  rotateButton = buttonReads[9];
 }
 
 
