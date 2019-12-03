@@ -33,6 +33,8 @@ int buttonReads[10];
 bool flipButton = false;
 bool rotateButton = false;
 
+bool redTurn = false;
+
 //void ReverseLights(int column);
 //void RotateLeft(int row);
 //bool makeMove(Move m, int column, int row);
@@ -97,6 +99,14 @@ void registerClearNot(int delta = 0) {
 void registerSingle(int bitNum, int delta = 0) {
   byte writeVal = 0;
   bitWrite(writeVal, bitNum, 1);
+  if (delta == 0) { //For player turn indicator
+    if (redTurn) {
+      bitWrite(writeVal, 6, 1);
+    }
+    else {
+      bitWrite(writeVal, 7, 1);
+    }
+  }
   registerWrite(writeVal, delta);
 }
 
@@ -424,6 +434,7 @@ void winSequence() {
 void resetGame() {
   clearGameState();
   int player = 1;
+  redTurn = true;
   gameState = playing;
   delayAndLight(100);
 }
@@ -431,9 +442,11 @@ void resetGame() {
 void switchPlayer() {
   if (player == 1) {
     player = 2;
+    redTurn = false;
   }
   else {
     player = 1;
+    redTurn = true;
   }
   delayAndLight(5);
 }
