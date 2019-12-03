@@ -12,8 +12,8 @@ GameState gameState = playing;
 int horizontalDiagonalCheck[ROWS][COLUMNS * 3] = {};
 int tempHorizontalRow[COLUMNS * 3];
 
-int PIN_BTN1 = A0;
-int PIN_BTN2 = A3;
+int PIN_BTN1 = A1;
+int PIN_BTN2 = A2;
 int SHIFT_DATA = 11;
 int SHIFT_CLK = 12;
 int SHIFT_LATCH = 13;
@@ -24,8 +24,8 @@ int LIGHTS_DELTA = -1 * (SHIFT_DATA - LIGHTS_DATA);
 int LIGHTS_SHOWTIME = 200;
 int LIGHTS_OE = SCL; //A4 or A5
 
-int PIN_JOYSTICKX = A1;
-int PIN_JOYSTICKY = A2;
+int PIN_JOYSTICKX = A3;
+int PIN_JOYSTICKY = A4;
 
 int LIGHTS_ROWPINS[6] = {8, 2, 10, 4, 9, 3};
 
@@ -209,7 +209,7 @@ Move nextMove = nomove;
 int move_column = -1;
 int move_row = -1;
 void loop() {
-  while (gameState = playing) {
+  while (gameState == playing) {
     lights_drawBoard();
     bool validMove = false;
     while (!validMove) {
