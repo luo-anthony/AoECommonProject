@@ -215,7 +215,7 @@ int move_column = -1;
 int move_row = -1;
 void loop() {
   while (gameState = playing) {
-    DEBUG();
+    //DEBUG();
     lights_drawBoard();
     bool validMove = false;
     while (!validMove) {
@@ -226,7 +226,7 @@ void loop() {
         parseInputs();
         validMove = makeMove(nextMove, move_column, move_row);
         Serial.println("Move made");
-        DEBUG();
+        //DEBUG();
         if (!validMove) {
           resetInputs();
           nextMove = nomove;
@@ -271,7 +271,7 @@ void resetInputs() {
 
 
 void parseInputs() {
-  DEBUG();
+  //DEBUG();
   int column = -1;
   readButtons();
   for (int i = 0; i < 8; i ++) {
@@ -350,7 +350,7 @@ void parseInputs() {
     }
   }
   delayAndLight(1);
-  DEBUG();
+  //DEBUG();
 }
 
 JoystickMove parseJoystickInputs() {
