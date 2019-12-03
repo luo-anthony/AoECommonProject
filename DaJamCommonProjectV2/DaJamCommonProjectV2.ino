@@ -5,6 +5,7 @@ int gameStateArr[ROWS][COLUMNS] = {};
 enum Move {reverse, rotate_left, rotate_right, add, nomove};
 enum GameState {playing, P1_won, P2_won, tie};
 enum JoystickMove {up, down, left, right, center};
+enum Action {flashRow, flashColumn, noFlash, Drop};
 int temprow[COLUMNS];
 int tempcolumn[ROWS];
 int player = 1; //this value must be updated at every time and can only be 0, 1, 2,: P1= 1, P2 = 2
@@ -12,7 +13,8 @@ GameState gameState = playing;
 int horizontalDiagonalCheck[ROWS][COLUMNS * 3] = {};
 int tempHorizontalRow[COLUMNS * 3];
 
-int PIN_BTN = A0;
+int PIN_BTN1 = A1;
+int PIN_BTN2 = A2;
 int SHIFT_DATA = 11;
 int SHIFT_CLK = 12;
 int SHIFT_LATCH = 13;
@@ -23,32 +25,17 @@ int LIGHTS_DELTA = -1 * (SHIFT_DATA - LIGHTS_DATA);
 int LIGHTS_SHOWTIME = 200;
 int LIGHTS_OE = SCL; //A4 or A5
 
-int PIN_JOYSTICKX = A1;
-int PIN_JOYSTICKY = A2;
+int PIN_JOYSTICKX = A3;
+int PIN_JOYSTICKY = A4;
 
 int LIGHTS_ROWPINS[6] = {8, 2, 10, 4, 9, 3};
 
-int buttonReads[8];
+int buttonReads[10];
 bool flipButton = false;
 bool rotateButton = false;
 
-//void ReverseLights(int column);
-//void RotateLeft(int row);
-//bool makeMove(Move m, int column, int row);
-//void winSequence();
-//void resetGame();
-//void switchPlayer();
-//void copyRow(int row);
-//void copyColumn(int column);
-//void ReverseLights(int column);
-//void RotateLeft(int row);
-//void RotateRight(int row);
-//bool AddPiece(int column);
-//int checkifArrayContainsFour(int temparr[]);
-//void copyBigHorizontal(int row);
-//void isGameWon();
-//void parseInputs();
-//void resetInputs();
+bool redTurn = false;
+
 
 
 void setup() {
@@ -56,7 +43,8 @@ void setup() {
   clearGameState();
   Serial.begin(9600);
   // put your setup code here, to run once:
-  pinMode(PIN_BTN, INPUT);
+  pinMode(PIN_BTN1, INPUT);
+  pinMode(PIN_BTN2, INPUT);
   pinMode(SHIFT_DATA, OUTPUT);
   pinMode(SHIFT_CLK, OUTPUT);
   pinMode(SHIFT_LATCH, OUTPUT);
@@ -95,6 +83,14 @@ void registerClearNot(int delta = 0) {
 void registerSingle(int bitNum, int delta = 0) {
   byte writeVal = 0;
   bitWrite(writeVal, bitNum, 1);
+  if (delta == 0) { //For player turn indicator
+    if (redTurn) {
+      bitWrite(writeVal, 6, 1);
+    }
+    else {
+      bitWrite(writeVal, 7, 1);
+    }
+  }
   registerWrite(writeVal, delta);
 }
 
@@ -142,15 +138,16 @@ void lights_drawBoard() {
 }
 
 void readButtons() { //Should debounce
-  for (int bNum = 0; bNum < 8; bNum++) {
+  for (int bNum = 0; bNum < 5; bNum++) {
     registerSingle(bNum);
-    int readVal = digitalRead(PIN_BTN);
-    if (readVal != buttonReads[bNum]) {
-      delay(15); //SHOULD FIX THIS
-      readVal = digitalRead(PIN_BTN);
-    }
+    int readVal = digitalRead(PIN_BTN1);
+    int readVal2 = digitalRead(PIN_BTN2);
+
     buttonReads[bNum] = readVal;
+    buttonReads[bNum + 5] = readVal2;
   }
+  flipButton = buttonReads[8];
+  rotateButton = buttonReads[9];
 }
 
 
@@ -159,8 +156,8 @@ void readButtons() { //Should debounce
 int joystickX = 0;
 int joystickY = 0;
 void readJoystick() {
-  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -50, 50);
-  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -50, 50);
+  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -90, 90);
+  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -90, 90);
 }
 
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
@@ -209,15 +206,13 @@ void clearGameState() {
     }
   }
 }
-enum Action {flashRow, flashColumn, noFlash, Drop};
-
 
 Move nextMove = nomove;
 int move_column = -1;
 int move_row = -1;
 void loop() {
   while (gameState == playing) {
-    //DEBUG();
+    DEBUG();
     lights_drawBoard();
     bool validMove = false;
     while (!validMove) {
@@ -232,11 +227,11 @@ void loop() {
         if (a == flashColumn) {
           animateFlashColumn();
         }
-        if (nextMove != noMove) {
+        if (nextMove != nomove) {
           validMove = makeMove(nextMove, move_column, move_row);
         }
         Serial.println("Move made");
-        //DEBUG();
+        DEBUG();
         if (!validMove) {
           resetInputs();
           nextMove = nomove;
@@ -258,8 +253,7 @@ bool joystickTriggered = false;
 JoystickMove last_partialDirection = center;
 int boardColumnPointer = 0;
 int boardRowPointer = 0;
-int flashColumnNum = -1;
-int flashRowNum = -1;
+
 
 bool RotateActivated = false;
 bool FlipActivated = false;
@@ -274,8 +268,6 @@ void resetInputs() {
   last_partialDirection = center;
   nextMove = nomove;
   boardColumnPointer = 0;
-  flashColumnNum = -1;
-  flashRowNum = -1;
   boardRowPointer = 0;
   RotateActivated = false;
   FlipActivated = false;
@@ -285,7 +277,7 @@ void resetInputs() {
 
 
 Action parseInputs() {
-  //DEBUG();
+  DEBUG();
   int column = -1;
   readButtons();
   for (int i = 0; i < 8; i ++) {
@@ -305,10 +297,12 @@ Action parseInputs() {
   if (rotateButton && !RotateButtonLastState && !RotateActivated) {
     RotateActivated = true;
     RotateButtonLastState = true;
+    return flashRow;
   }
   else if (flipButton && !FlipButtonLastState && !FlipActivated) {
     FlipActivated = true;
     FlipButtonLastState = true;
+    return flashColumn;
   }
   else if (rotateButton && !RotateButtonLastState && RotateActivated) {
     moveConfirmed = true;
@@ -319,7 +313,6 @@ Action parseInputs() {
 
   if (column == -1) {
     if (RotateActivated && !moveConfirmed) {
-      animateFlashRow(boardRowPointer);
       JoystickMove direction = parseJoystickInputs();
       if (direction == up) {
         boardRowPointer = boardRowPointer + 1 % 6;
@@ -330,11 +323,9 @@ Action parseInputs() {
           boardRowPointer = 5;
         }
       }
-      flashRowNum = boardRowPointer;
       return flashRow;
     }
     else if (FlipActivated && !moveConfirmed) {
-      animateFlashColumn(boardColumnPointer);
       JoystickMove direction = parseJoystickInputs();
       if (direction == right) {
         boardColumnPointer = boardColumnPointer + 1 % 8;
@@ -345,7 +336,6 @@ Action parseInputs() {
           boardColumnPointer = 7;
         }
       }
-      flashColumnNum = boardColumnPointer;
       return flashColumn;
     }
     else if (RotateActivated && moveConfirmed) {
@@ -364,9 +354,8 @@ Action parseInputs() {
       move_column = boardColumnPointer;
     }
   }
-  return noFlash;
   delayAndLight(1);
-  //DEBUG();
+  return noFlash;
 }
 
 JoystickMove parseJoystickInputs() {
@@ -399,7 +388,7 @@ JoystickMove parseJoystickInputs() {
 }
 
 void animateFlashRow() {
-  int row = flashRowNum;
+  int row = boardRowPointer;
   copytoGameArrayFrom(arr); //create backup of the game state
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
@@ -428,7 +417,7 @@ void animateFlashRow() {
 }
 
 void animateFlashColumn() {
-  int column = flashColumnNum;
+  int column = boardColumnPointer;
   copytoGameArrayFrom(arr); //create backup of the game state
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
@@ -489,6 +478,7 @@ void winSequence() {
 void resetGame() {
   clearGameState();
   int player = 1;
+  redTurn = true;
   gameState = playing;
   delayAndLight(100);
 }
@@ -496,9 +486,12 @@ void resetGame() {
 void switchPlayer() {
   if (player == 1) {
     player = 2;
+    redTurn = false;
   }
   else {
     player = 1;
+    redTurn = true;
+
   }
   delayAndLight(5);
 }
