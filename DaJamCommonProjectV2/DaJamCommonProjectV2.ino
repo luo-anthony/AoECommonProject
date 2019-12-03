@@ -70,6 +70,7 @@ void setup() {
   for (int rowPinIdx = 0; rowPinIdx < 6; rowPinIdx++) {
     pinMode(LIGHTS_ROWPINS[rowPinIdx], INPUT);
   }
+  Serial.begin(9600);
 
 }
 
