@@ -209,12 +209,14 @@ void clearGameState() {
     }
   }
 }
+enum Action {flashRow, flashColumn, noFlash, Drop};
+
 
 Move nextMove = nomove;
 int move_column = -1;
 int move_row = -1;
 void loop() {
-  while (gameState = playing) {
+  while (gameState == playing) {
     //DEBUG();
     lights_drawBoard();
     bool validMove = false;
@@ -223,8 +225,16 @@ void loop() {
       while (nextMove == nomove) {
         lights_drawBoard();
         Serial.println("waiting for Move");
-        parseInputs();
-        validMove = makeMove(nextMove, move_column, move_row);
+        Action a = parseInputs();
+        if (a == flashRow) {
+          animateFlashRow();
+        }
+        if (a == flashColumn) {
+          animateFlashColumn();
+        }
+        if (nextMove != noMove) {
+          validMove = makeMove(nextMove, move_column, move_row);
+        }
         Serial.println("Move made");
         //DEBUG();
         if (!validMove) {
@@ -248,6 +258,8 @@ bool joystickTriggered = false;
 JoystickMove last_partialDirection = center;
 int boardColumnPointer = 0;
 int boardRowPointer = 0;
+int flashColumnNum = -1;
+int flashRowNum = -1;
 
 bool RotateActivated = false;
 bool FlipActivated = false;
@@ -262,6 +274,8 @@ void resetInputs() {
   last_partialDirection = center;
   nextMove = nomove;
   boardColumnPointer = 0;
+  flashColumnNum = -1;
+  flashRowNum = -1;
   boardRowPointer = 0;
   RotateActivated = false;
   FlipActivated = false;
@@ -270,7 +284,7 @@ void resetInputs() {
 }
 
 
-void parseInputs() {
+Action parseInputs() {
   //DEBUG();
   int column = -1;
   readButtons();
@@ -278,7 +292,7 @@ void parseInputs() {
     if (buttonReads[i] == 1) {
       column = i;
       nextMove = add;
-      break;
+      return Drop;
     }
   }
   if (!rotateButton) {
@@ -316,8 +330,8 @@ void parseInputs() {
           boardRowPointer = 5;
         }
       }
-      animateFlashRow(boardRowPointer);
-
+      flashRowNum = boardRowPointer;
+      return flashRow;
     }
     else if (FlipActivated && !moveConfirmed) {
       animateFlashColumn(boardColumnPointer);
@@ -331,7 +345,8 @@ void parseInputs() {
           boardColumnPointer = 7;
         }
       }
-      animateFlashColumn(boardColumnPointer);
+      flashColumnNum = boardColumnPointer;
+      return flashColumn;
     }
     else if (RotateActivated && moveConfirmed) {
       JoystickMove direction = parseJoystickInputs();
@@ -349,6 +364,7 @@ void parseInputs() {
       move_column = boardColumnPointer;
     }
   }
+  return noFlash;
   delayAndLight(1);
   //DEBUG();
 }
@@ -382,34 +398,60 @@ JoystickMove parseJoystickInputs() {
   return center;
 }
 
-void animateFlashRow(int row) {
+void animateFlashRow() {
+  int row = flashRowNum;
   copytoGameArrayFrom(arr); //create backup of the game state
-  int numFlashes = 3;
+  int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = player;
     }
-    delayAndLight(150); //to be adjusted
+    for (int l = 0; l < 10; l++) {
+      delayAndLight(10);
+      Action a = parseInputs();
+      if (a == Drop) {
+        return;
+      }
+    }
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = 0;
     }
-    delayAndLight(100);
+    for (int l = 0; l < 5; l++) {
+      delayAndLight(10);
+      Action a = parseInputs();
+      if (a == Drop) {
+        return;
+      }
+    }
   }
   copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
 }
 
-void animateFlashColumn(int column) {
+void animateFlashColumn() {
+  int column = flashColumnNum;
   copytoGameArrayFrom(arr); //create backup of the game state
-  int numFlashes = 3;
+  int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
     for (int i = 0; i < 6; i ++) {
       arr[i][column] = player;
     }
-    delayAndLight(150); //to be adjusted
+    for (int l = 0; l < 10; l++) {
+      delayAndLight(10);
+      Action a = parseInputs();
+      if (a == Drop) {
+        return;
+      }
+    }
     for (int i = 0; i < 6; i ++) {
       arr[i][column] = 0;
     }
-    delayAndLight(100);
+    for (int l = 0; l < 5; l++) {
+      delayAndLight(10);
+      Action a = parseInputs();
+      if (a == Drop) {
+        return;
+      }
+    }
   }
   copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
 
