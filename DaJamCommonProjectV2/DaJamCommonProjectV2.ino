@@ -220,6 +220,7 @@ void loop() {
       while (nextMove == nomove) {
         lights_drawBoard();
         Serial.println("waiting for Move");
+        DEBUG();
         Action a = parseInputs();
         if (a == flashRow) {
           animateFlashRow();
@@ -231,7 +232,6 @@ void loop() {
           validMove = makeMove(nextMove, move_column, move_row);
         }
         Serial.println("Move made");
-        DEBUG();
         if (!validMove) {
           resetInputs();
           nextMove = nomove;
@@ -277,7 +277,6 @@ void resetInputs() {
 
 
 Action parseInputs() {
-  DEBUG();
   int column = -1;
   readButtons();
   for (int i = 0; i < 8; i ++) {
