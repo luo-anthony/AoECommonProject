@@ -172,8 +172,8 @@ void readButtons() { //Should debounce
 int joystickX = 0;
 int joystickY = 0;
 void readJoystick() {
-  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -50, 50);
-  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -50, 50);
+  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -90, 90);
+  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -90, 90);
 }
 
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
@@ -376,6 +376,7 @@ void animateFlashRow(int row) {
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = player;
     }
+    //must keep parsing inputs 
     delayAndLight(150); //to be adjusted
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = 0;
@@ -532,7 +533,7 @@ bool AddPiece(int column) {
   for (int i = 5; i >= 0; i --) {
     delayAndLight(1);
     if (arr[i][column] == 0) {
-      if (i == 0) {
+      if (i == -1) {
         return false;
       }
       gameStateArr[i][column] = player;
