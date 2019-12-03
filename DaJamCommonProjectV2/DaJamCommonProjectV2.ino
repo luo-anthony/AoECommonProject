@@ -219,8 +219,6 @@ void loop() {
       lights_drawBoard();
       while (nextMove == nomove) {
         lights_drawBoard();
-        Serial.println("waiting for Move");
-        DEBUG();
         Action a = parseInputs();
         if (a == flashRow) {
           animateFlashRow();
@@ -230,14 +228,15 @@ void loop() {
         }
         if (nextMove != nomove) {
           validMove = makeMove(nextMove, move_column, move_row);
+          Serial.println("Move made");
         }
-        Serial.println("Move made");
         if (!validMove) {
           resetInputs();
           nextMove = nomove;
         }
       }
     }
+    DEBUG();
     Serial.println("finishedMove");
     lights_drawBoard();
     isGameWon();
