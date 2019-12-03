@@ -163,12 +163,6 @@ void readJoystick() {
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
 
 void DEBUG() {
-  Serial.println("BUTTON STATE");
-  Serial.println("0, 1, 2, 3, 4, 5, 6, 7");
-  String y = "";
-  for (int i = 0; i < 8; i += 1) {
-    y = y + String(buttonReads[i]) + ",";
-  }
   Serial.println("CURRENT LIGHTING ARRAY");
   for (int j = 0; j < ROWS; j += 1) {
     String s = "";
@@ -177,7 +171,7 @@ void DEBUG() {
     }
     Serial.println(s);
   }
-  Serial.println("\n\n");
+  Serial.println("\n");
 }
 
 //start backend code
@@ -211,8 +205,8 @@ Move nextMove = nomove;
 int move_column = -1;
 int move_row = -1;
 void loop() {
+  DEBUG();
   while (gameState == playing) {
-    DEBUG();
     lights_drawBoard();
     bool validMove = false;
     while (!validMove) {
@@ -228,7 +222,8 @@ void loop() {
         }
         if (nextMove != nomove) {
           validMove = makeMove(nextMove, move_column, move_row);
-          Serial.println("Move made");
+          Serial.println("Move made: " + String(nextMove));
+          Serial.println("Move_Column: " + String(move_column) + " | Move_Row: " + String(move_row));
         }
         if (!validMove) {
           resetInputs();
@@ -282,6 +277,7 @@ Action parseInputs() {
     if (buttonReads[i] == 1) {
       column = i;
       nextMove = add;
+      Serial.println("Column Button Pressed: " + String(i));
       return Drop;
     }
   }
@@ -295,17 +291,21 @@ Action parseInputs() {
   if (rotateButton && !RotateButtonLastState && !RotateActivated) {
     RotateActivated = true;
     RotateButtonLastState = true;
+    Serial.println("Rotate Button Activated");
     return flashRow;
   }
   else if (flipButton && !FlipButtonLastState && !FlipActivated) {
     FlipActivated = true;
     FlipButtonLastState = true;
+    Serial.println("Flip Button Activated");
     return flashColumn;
   }
   else if (rotateButton && !RotateButtonLastState && RotateActivated) {
+    Serial.println("Rotate Confirmed");
     moveConfirmed = true;
   }
   else if (flipButton && !FlipButtonLastState && FlipActivated) {
+    Serial.println("Flip Confirmed");
     moveConfirmed = true;
   }
 
@@ -387,6 +387,7 @@ JoystickMove parseJoystickInputs() {
 
 void animateFlashRow() {
   int row = boardRowPointer;
+  Serial.println("Flashing Row: " + String(row));
   copytoGameArrayFrom(arr); //create backup of the game state
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
@@ -416,6 +417,7 @@ void animateFlashRow() {
 
 void animateFlashColumn() {
   int column = boardColumnPointer;
+  Serial.println("Flashing Column: " + String(column));
   copytoGameArrayFrom(arr); //create backup of the game state
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
@@ -474,6 +476,7 @@ void winSequence() {
 }
 
 void resetGame() {
+  Serial.println("Resetting Game");
   clearGameState();
   int player = 1;
   redTurn = true;
@@ -491,6 +494,7 @@ void switchPlayer() {
     redTurn = true;
 
   }
+  Serial.println("Switching Player | New Player:" + String(player));
   delayAndLight(5);
 }
 
@@ -510,13 +514,15 @@ int countOccurences(int array[], int num) { //test this function
   int count = 0;
   int n = sizeof(array) / sizeof(array[0]);
   for (int i = 0; i < n; i++) {
-    if (arr[i == num]) {
+    if (arr[i] == num) {
       count++;
     }
   }
   return count;
 }
 void ReverseLights(int column) {
+  copytoGameArrayFrom(arr);
+  Serial.println("Reversing Lights | Column: " + String(column));
   delayAndLight(50);
   copyColumn(column);
   int numzeros = countOccurences(tempcolumn, 0);
@@ -527,12 +533,14 @@ void ReverseLights(int column) {
   for (int i = 0; i < ROWS; i ++) {
     arr[i][column] = 0;
   }
+
+  Serial.println("Start Reverse Falling Animation");
   //animate falling
   for (int i = 0; i < numzeros; i ++) {
     for (int j = 0; j < ROWS - numzeros; j ++) {
       arr[i][column] = onetwos[j];
     }
-    delayAndLight(500);
+    delayAndLight(200);
     for (int i = 0; i < ROWS; i ++) {
       arr[i][column] = 0;
     }
@@ -540,29 +548,36 @@ void ReverseLights(int column) {
   for (int i = 0; i < ROWS - numzeros; i ++) {
     arr[ROWS - 1 - i][column] = onetwos[i];
   }
+  Serial.println("Reverse Finished");
   delayAndLight(1000);
+  DEBUG();
   //NEED TO CHECK IF THIS WORKS LOL
 }
 
 
 void RotateLeft(int row) {
+  Serial.println("Rotating Left | Row: " + String(row));
+
   delayAndLight(50);
   copyRow(row);
   for (int i = 0; i < 7; i ++) {
     arr[row][i] = temprow[i + 1];
   }
   arr[row][COLUMNS - 1] = temprow[0];
-  delayAndLight(500);
+  delayAndLight(400);
+  copytoGameArrayFrom(arr);
 }
 
 void RotateRight(int row) {
+  Serial.println("Rotating Right | Row: " + String(row));
   delayAndLight(50);
   copyRow(row);
   for (int i = 1; i < COLUMNS; i ++) {
     arr[row][i] = temprow[i - 1];
   }
   arr[row][0] = temprow[COLUMNS - 1];
-  delayAndLight(500);
+  delayAndLight(400);
+  copytoGameArrayFrom(arr);
 }
 
 
@@ -570,6 +585,7 @@ void RotateRight(int row) {
   Returns true if valid move, false if the column is full already
 */
 bool AddPiece(int column) {
+  Serial.println("Adding Piece Column: " + String(column));
   copytoGameArrayFrom(arr);
   delayAndLight(200);
   int piecePosition = -1;
@@ -581,16 +597,22 @@ bool AddPiece(int column) {
       break;
     }
   }
+  Serial.println("Next Piece Location |  Column: " + String(column) + "  Row: " + String(row));
   if (piecePosition == -1) {
+    Serial.println("Invalid Move");
     return false;
   }
+  Serial.println("Start Fall Animation");
   for (int i = 0; i > piecePosition; i--) {
+    DEBUG();
     arr[i][column] = player;
-    delayAndLight(500);
+    delayAndLight(300);
     arr[i][column] = 0;
-    delayAndLight(10);
   }
   copytoArrayFrom(gameStateArr);
+  delayAndLight(10);
+  Serial.println("Finish Adding Piece");
+  DEBUG();
   delayAndLight(700);
   return true;
 }
@@ -614,6 +636,7 @@ void copyBigHorizontal(int row) {
 }
 
 void isGameWon() {
+  Serial.println("Running isGameWon()");
   delayAndLight(10);
   //checking vertical
   bool PlayerOneWon = false;
@@ -707,5 +730,6 @@ void isGameWon() {
   if (PlayerTwoWon == true) {
     gameState = P2_won;
   }
+  Serial.println("Finish isGameWon() - Game State: " + String(gameState));
   delayAndLight(5);
 }
