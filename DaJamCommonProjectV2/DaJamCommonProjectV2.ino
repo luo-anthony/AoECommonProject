@@ -210,11 +210,11 @@ void loop() {
           nextMove = nomove;
         }
       }
-      lights_drawBoard();
-      isGameWon();
-      resetInputs();
-      switchPlayer();
     }
+    lights_drawBoard();
+    isGameWon();
+    resetInputs();
+    switchPlayer();
   }
   delayAndLight(4000);
   winSequence();
@@ -523,7 +523,7 @@ bool AddPiece(int column) {
       break;
     }
   }
-  if (i == -1) {
+  if (piecePosition == -1) {
     return false;
   }
   for (int i = 0; i > piecePosition; i--) {
