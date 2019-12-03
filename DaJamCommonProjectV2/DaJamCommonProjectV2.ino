@@ -71,7 +71,6 @@ void setup() {
     pinMode(LIGHTS_ROWPINS[rowPinIdx], INPUT);
   }
 
-  Serial.begin(9600);
 }
 
 //start frontend code
@@ -164,6 +163,18 @@ void readJoystick() {
 }
 
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
+
+void printLightArray(){
+  Serial.println("CURRENT LIGHTING ARRAY");
+  for(int j = 0; j < ROWS; j +=1){
+    String s = "";
+    for(int i=0; i < COLUMNS; i+=1){
+      s = String(arr[j][i]) + ",";
+    }
+    Serial.println(s);
+  }
+  Serial.println("\n\n");
+}
 
 //start backend code
 
