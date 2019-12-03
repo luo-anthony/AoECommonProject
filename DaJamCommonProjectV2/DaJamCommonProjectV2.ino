@@ -164,12 +164,18 @@ void readJoystick() {
 
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
 
-void printLightArray(){
+void DEBUG() {
+  Serial.println("BUTTON STATE");
+  Serial.println("0, 1, 2, 3, 4, 5, 6, 7");
+  String y = "";
+  for (int i = 0; i < 8; i += 1) {
+    y = y + String(buttonReads[i]) + ",";
+  }
   Serial.println("CURRENT LIGHTING ARRAY");
-  for(int j = 0; j < ROWS; j +=1){
+  for (int j = 0; j < ROWS; j += 1) {
     String s = "";
-    for(int i=0; i < COLUMNS; i+=1){
-      s = String(arr[j][i]) + ",";
+    for (int i = 0; i < COLUMNS; i += 1) {
+      s = s + String(arr[j][i]) + ",";
     }
     Serial.println(s);
   }
@@ -208,20 +214,25 @@ int move_column = -1;
 int move_row = -1;
 void loop() {
   while (gameState = playing) {
+    DEBUG();
     lights_drawBoard();
     bool validMove = false;
     while (!validMove) {
       lights_drawBoard();
       while (nextMove == nomove) {
         lights_drawBoard();
+        Serial.println("waiting for Move");
         parseInputs();
         validMove = makeMove(nextMove, move_column, move_row);
+        Serial.println("Move made");
+        DEBUG();
         if (!validMove) {
           resetInputs();
           nextMove = nomove;
         }
       }
     }
+    Serial.println("finishedMove");
     lights_drawBoard();
     isGameWon();
     resetInputs();
@@ -259,6 +270,7 @@ void resetInputs() {
 
 
 void parseInputs() {
+  DEBUG();
   int column = -1;
   readButtons();
   for (int i = 0; i < 8; i ++) {
@@ -337,6 +349,7 @@ void parseInputs() {
     }
   }
   delayAndLight(1);
+  DEBUG();
 }
 
 JoystickMove parseJoystickInputs() {
