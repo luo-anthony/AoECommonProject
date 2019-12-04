@@ -482,7 +482,7 @@ void resetGame() {
   int player = 1;
   redTurn = true;
   gameState = playing;
-  delayAndLight(100);
+  delayAndLight(10);
 }
 
 void switchPlayer() {
@@ -541,7 +541,7 @@ void ReverseLights(int column) {
     for (int j = 0; j < ROWS - numzeros; j ++) {
       arr[i][column] = onetwos[j];
     }
-    delayAndLight(200);
+    delayAndLight(400);
     for (int i = 0; i < ROWS; i ++) {
       arr[i][column] = 0;
     }
@@ -550,7 +550,7 @@ void ReverseLights(int column) {
     arr[ROWS - 1 - i][column] = onetwos[i];
   }
   Serial.println("Reverse Finished");
-  delayAndLight(1000);
+  delayAndLight(5);
   DEBUG();
   //NEED TO CHECK IF THIS WORKS LOL
 }
@@ -565,7 +565,7 @@ void RotateLeft(int row) {
     arr[row][i] = temprow[i + 1];
   }
   arr[row][COLUMNS - 1] = temprow[0];
-  delayAndLight(400);
+  delayAndLight(5);
   copytoGameArrayFrom(arr);
 }
 
@@ -577,7 +577,7 @@ void RotateRight(int row) {
     arr[row][i] = temprow[i - 1];
   }
   arr[row][0] = temprow[COLUMNS - 1];
-  delayAndLight(400);
+  delayAndLight(5);
   copytoGameArrayFrom(arr);
 }
 
@@ -588,7 +588,7 @@ void RotateRight(int row) {
 bool AddPiece(int column) {
   Serial.println("Adding Piece Column: " + String(column));
   copytoGameArrayFrom(arr);
-  delayAndLight(200);
+  delayAndLight(100);
   int piecePosition = -1;
   for (int i = 5; i >= 0; i --) {
     delayAndLight(1);
@@ -607,14 +607,14 @@ bool AddPiece(int column) {
   for (int i = 0; i > piecePosition; i--) {
     DEBUG();
     arr[i][column] = player;
-    delayAndLight(300);
+    delayAndLight(10);
     arr[i][column] = 0;
   }
   copytoArrayFrom(gameStateArr);
   delayAndLight(10);
   Serial.println("Finish Adding Piece");
   DEBUG();
-  delayAndLight(700);
+  delayAndLight(5);
   return true;
 }
 
