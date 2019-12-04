@@ -210,7 +210,7 @@ void clearGameState() {
   }
 }
 
-void TESTcopyArrayState(int fromArr[ROWS][COLUMNS]){
+void TESTcopyArrayState(int fromArr[ROWS][COLUMNS]) {
   for (int i = 0; i < COLUMNS; i += 1) {
     for (int j = 0; j < ROWS; j += 1) {
       arr[j][i] = fromArr[j][i];
@@ -220,7 +220,7 @@ void TESTcopyArrayState(int fromArr[ROWS][COLUMNS]){
 
 //debug only
 
-//int TESTARRAY[6][8] =  
+//int TESTARRAY[6][8] =
 //{ {0 , 1 , 2, 0 , 0 , 0 , 0, 0},
 //  {2 , 1 , 1, 0 , 0 , 0 , 0, 0},
 //  {1 , 2 , 1, 2 , 0 , 0 , 0, 0},
@@ -228,10 +228,12 @@ void TESTcopyArrayState(int fromArr[ROWS][COLUMNS]){
 //  {1 , 2 , 0, 0 , 0 , 0 , 0, 0},
 //  {2 , 0 , 0, 0 , 0 , 0 , 0, 0 } };
 
-
+bool RotateActivated = false;
+bool FlipActivated = false;
 Move nextMove = nomove;
 int move_column = -1;
 int move_row = -1;
+
 void loop() {
   //TESTcopyArrayState(TESTARRAY);
   DEBUG();
@@ -243,11 +245,14 @@ void loop() {
       while (nextMove == nomove) {
         lights_drawBoard();
         Action a = parseInputs();
-        if (a == flashRow) {
-          animateFlashRow();
+        bool okay = true;
+        while (RotateActivated && okay) {
+          okay = animateFlashRow();
+          parseInputs();
         }
-        if (a == flashColumn) {
-          animateFlashColumn();
+        while (FlipActivated && okay) {
+          okay = animateFlashColumn();
+          parseInputs();
         }
         if (nextMove != nomove) {
           validMove = makeMove(nextMove, move_column, move_row);
@@ -280,8 +285,7 @@ int boardColumnPointer = 0;
 int boardRowPointer = 0;
 
 
-bool RotateActivated = false;
-bool FlipActivated = false;
+
 bool RotateButtonLastState = false;
 bool FlipButtonLastState = false;
 bool moveConfirmed = false;
@@ -417,7 +421,7 @@ JoystickMove parseJoystickInputs() {
   return center;
 }
 
-void animateFlashRow() {
+bool animateFlashRow() {
   int row = boardRowPointer;
   Serial.println("Flashing Row: " + String(row));
   copytoGameArrayFrom(arr); //create backup of the game state
@@ -426,28 +430,31 @@ void animateFlashRow() {
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = player;
     }
-    for (int l = 0; l < 10; l++) {
+    for (int l = 0; l < 20; l++) {
       delayAndLight(10);
       Action a = parseInputs();
       if (a == Drop) {
-        return;
+        copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
+        return false;
       }
     }
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = 0;
     }
-    for (int l = 0; l < 5; l++) {
+    for (int l = 0; l < 10; l++) {
       delayAndLight(10);
       Action a = parseInputs();
       if (a == Drop) {
-        return;
+        copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
+        return false;
       }
     }
   }
+  return true;
   copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
 }
 
-void animateFlashColumn() {
+bool animateFlashColumn() {
   int column = boardColumnPointer;
   Serial.println("Flashing Column: " + String(column));
   copytoGameArrayFrom(arr); //create backup of the game state
@@ -460,7 +467,8 @@ void animateFlashColumn() {
       delayAndLight(10);
       Action a = parseInputs();
       if (a == Drop) {
-        return;
+        copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
+        return false;
       }
     }
     for (int i = 0; i < 6; i ++) {
@@ -470,12 +478,13 @@ void animateFlashColumn() {
       delayAndLight(10);
       Action a = parseInputs();
       if (a == Drop) {
-        return;
+        copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
+        return false;
       }
     }
   }
   copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
-
+  return true;
 }
 
 void delayAndLight(int time) { //time in milliseconds
@@ -669,10 +678,10 @@ void copyBigHorizontal(int row) {
   }
 }
 
-bool isBoardFull(){
+bool isBoardFull() {
   for (int i = 0; i < COLUMNS; i += 1) {
     for (int j = 0; j < ROWS; j += 1) {
-      if(arr[j][i] ==0){
+      if (arr[j][i] == 0) {
         return false;
       }
     }
@@ -754,7 +763,7 @@ void isGameWon() {
   delayAndLight(2);
 
 
-  for (int i = 0; i < (COLUMNS * 3) -3; i++) {
+  for (int i = 0; i < (COLUMNS * 3) - 3; i++) {
     for (int j = 5; j > 2; j--) {
       int checkfour[4] = {};
       for (int k = 0; k < 4; k ++) {
@@ -782,11 +791,9 @@ void isGameWon() {
     gameState = P2_won;
   }
 
-  if(isBoardFull()){
+  if (isBoardFull()) {
     gameState = tie;
   }
   Serial.println("Finish isGameWon() - Game State: " + String(gameState));
   delayAndLight(5);
 }
-
-
