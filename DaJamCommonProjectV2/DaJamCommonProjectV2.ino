@@ -175,10 +175,9 @@ void DEBUG() {
   Serial.println("\n");
 }
 
-void PRINTARR(int a[], String names){
-  int sizes = *(&a + 1) - a;
+void PRINTARR(int a[], int sizes, String names) {
   String s = "";
-  for(int i =0; i < sizes; i ++){
+  for (int i = 0; i < sizes; i ++) {
     s = s + String(a[i]) + ",";
   }
   Serial.println(names + ":  " + s);
@@ -216,9 +215,6 @@ int move_column = -1;
 int move_row = -1;
 void loop() {
   DEBUG();
-  for (int r = 0; r < 8; r++) {
-    arr[5][r] = 2;
-  }
   while (gameState == playing) {
     lights_drawBoard();
     bool validMove = false;
@@ -248,10 +244,12 @@ void loop() {
     Serial.println("finishedMove");
     lights_drawBoard();
     isGameWon();
-    resetInputs();
-    switchPlayer();
+    if (gameState == playing) {
+      resetInputs();
+      switchPlayer();
+    }
   }
-  delayAndLight(4000);
+  delayAndLight(2000);
   winSequence();
   resetGame();
 }
@@ -486,6 +484,7 @@ bool makeMove(Move m, int column, int row) {
 }
 
 void winSequence() {
+  Serial.println("Yay Player " + String(player) + " WON");
   //TODO - David code some fancy flash animation thanks
 }
 
@@ -631,12 +630,13 @@ bool AddPiece(int column) {
   return true;
 }
 
-int checkifArrayContainsFour(int temparr[]) {
+int checkifArrayContainsFour(int temparr[], int sizes) {
+  //PRINTARR(tempcolumn, 6, "CheckColumn");
   int output = 0;
-  int n = sizeof(temparr) / sizeof(temparr[0]);
-  for (int i = 0; i < n - 3; i ++) {
-    if ((temparr[i] == temparr[i + 1]) && (temparr[i] == temparr[i + 2]) && (temparr[i] == temparr[i + 3]) && (temparr[i] == temparr[i + 4]) && temparr[i] >0) { //yes this is stupid code but whatever I don't want to use standard library lol
-      output = temparr[i];
+  for (int i = 0; i < sizes - 3; i ++) {
+    int one = int(temparr[i]);
+    if (one == int(temparr[i + 1]) && one == int(temparr[i + 2]) && one == int(temparr[i + 3]) && one > 0) { //yes this is stupid code but whatever I don't want to use standard library lol
+      output = int(temparr[i]);
       break;
     }
   }
@@ -655,11 +655,12 @@ void isGameWon() {
   //checking vertical
   bool PlayerOneWon = false;
   bool PlayerTwoWon = false;
+  Serial.println("Check Vertical Win");
   for (int i = 0; i < COLUMNS; i ++) {
     copyColumn(i);
     //Serial.println("Check Column: " + String(i));
-    //PRINTARR(tempcolumn, "Column Contents:");
-    int check = checkifArrayContainsFour(tempcolumn);
+    //PRINTARR(tempcolumn, 6,  "Column Contents");
+    int check = checkifArrayContainsFour(tempcolumn, ROWS);
     if (check == 1) { //change
       PlayerOneWon = true;
     }
@@ -670,7 +671,7 @@ void isGameWon() {
   delayAndLight(2);
 
   //checking horizontal
-
+  Serial.println("Check Horizontal Win");
   //copy arr into triple state
   for (int i = 0; i < COLUMNS * 3; i += COLUMNS) {
     for (int j = 0; j < ROWS; j += 1) {
@@ -684,22 +685,24 @@ void isGameWon() {
   //check each row
   for (int i = 0; i < ROWS; i++) {
     copyBigHorizontal(i);
-    for (int j = 0; j < (COLUMNS * 3) - 3; j++) {
-      int checkfour[4] = {};
-      for (int k = 0; k < 4; k ++) {
-        checkfour[k] = tempHorizontalRow[j + k];
-      }
-      int result = checkifArrayContainsFour(checkfour);
-      if (result == 1) {
-        PlayerOneWon = true;
-      }
-      if (result == 2) {
-        PlayerTwoWon = true;
-      }
-
+    //    for (int j = 0; j < (COLUMNS * 3) - 3; j++) {
+    //      int checkfour[4] = {};
+    //      for (int k = 0; k < 4; k ++) {
+    //        checkfour[k] = tempHorizontalRow[j + k];
+    //      }
+    int result = checkifArrayContainsFour(tempHorizontalRow, COLUMNS * 3);
+    if (result == 1) {
+      PlayerOneWon = true;
     }
+    if (result == 2) {
+      PlayerTwoWon = true;
+    }
+
+    //}
   }
   delayAndLight(2);
+
+  Serial.println("Check Diagonal Win");
 
   //check diagonal
   for (int i = 0; i < (COLUMNS * 3) - 3; i++) {
@@ -708,7 +711,7 @@ void isGameWon() {
       for (int k = 0; k < 4; k ++) {
         checkfour[k] = horizontalDiagonalCheck[j + k][i + k];
       }
-      int result = checkifArrayContainsFour(checkfour);
+      int result = checkifArrayContainsFour(checkfour, 4);
       if (result == 1) {
         PlayerOneWon = true;
       }
@@ -726,7 +729,7 @@ void isGameWon() {
       for (int k = 0; k < 4; k ++) {
         checkfour[k] = horizontalDiagonalCheck[j - k][i - k];
       }
-      int result = checkifArrayContainsFour(checkfour);
+      int result = checkifArrayContainsFour(checkfour, 4);
       if (result == 1) {
         PlayerOneWon = true;
       }
