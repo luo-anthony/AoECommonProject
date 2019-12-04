@@ -210,10 +210,30 @@ void clearGameState() {
   }
 }
 
+void TESTcopyArrayState(int fromArr[ROWS][COLUMNS]){
+  for (int i = 0; i < COLUMNS; i += 1) {
+    for (int j = 0; j < ROWS; j += 1) {
+      arr[j][i] = fromArr[j][i];
+    }
+  }
+}
+
+//debug only
+
+//int TESTARRAY[6][8] =  
+//{ {0 , 1 , 2, 0 , 0 , 0 , 0, 0},
+//  {2 , 1 , 1, 0 , 0 , 0 , 0, 0},
+//  {1 , 2 , 1, 2 , 0 , 0 , 0, 0},
+//  {2 , 1 , 2, 1 , 0 , 0 , 0, 0},
+//  {1 , 2 , 0, 0 , 0 , 0 , 0, 0},
+//  {2 , 0 , 0, 0 , 0 , 0 , 0, 0 } };
+
+
 Move nextMove = nomove;
 int move_column = -1;
 int move_row = -1;
 void loop() {
+  //TESTcopyArrayState(TESTARRAY);
   DEBUG();
   while (gameState == playing) {
     lights_drawBoard();
@@ -649,6 +669,17 @@ void copyBigHorizontal(int row) {
   }
 }
 
+bool isBoardFull(){
+  for (int i = 0; i < COLUMNS; i += 1) {
+    for (int j = 0; j < ROWS; j += 1) {
+      if(arr[j][i] ==0){
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 void isGameWon() {
   Serial.println("Running isGameWon()");
   delayAndLight(10);
@@ -723,11 +754,11 @@ void isGameWon() {
   delayAndLight(2);
 
 
-  for (int i = 3; i < (COLUMNS * 3); i++) {
-    for (int j = 3; j < ROWS; j++) {
+  for (int i = 0; i < (COLUMNS * 3) -3; i++) {
+    for (int j = 5; j > 2; j--) {
       int checkfour[4] = {};
       for (int k = 0; k < 4; k ++) {
-        checkfour[k] = horizontalDiagonalCheck[j - k][i - k];
+        checkfour[k] = horizontalDiagonalCheck[j - k][i + k];
       }
       int result = checkifArrayContainsFour(checkfour, 4);
       if (result == 1) {
@@ -744,12 +775,18 @@ void isGameWon() {
   if (PlayerOneWon == true && PlayerTwoWon == true) {
     gameState = tie;
   }
-  if (PlayerOneWon == true) {
+  else if (PlayerOneWon == true) {
     gameState = P1_won;
   }
-  if (PlayerTwoWon == true) {
+  else if (PlayerTwoWon == true) {
     gameState = P2_won;
+  }
+
+  if(isBoardFull()){
+    gameState = tie;
   }
   Serial.println("Finish isGameWon() - Game State: " + String(gameState));
   delayAndLight(5);
 }
+
+
