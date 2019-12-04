@@ -276,6 +276,7 @@ Action parseInputs() {
   for (int i = 0; i < 8; i ++) {
     if (buttonReads[i] == 1) {
       column = i;
+      move_column = i;
       nextMove = add;
       Serial.println("Column Button Pressed: " + String(i));
       return Drop;
@@ -514,7 +515,7 @@ int countOccurences(int array[], int num) { //test this function
   int count = 0;
   int n = sizeof(array) / sizeof(array[0]);
   for (int i = 0; i < n; i++) {
-    if (arr[i] == num) {
+    if (int(arr[i]) == num) {
       count++;
     }
   }
@@ -597,7 +598,7 @@ bool AddPiece(int column) {
       break;
     }
   }
-  Serial.println("Next Piece Location |  Column: " + String(column) + "  Row: " + String(row));
+  Serial.println("Next Piece Location |  Column: " + String(column) + "  Row: " + String(piecePosition));
   if (piecePosition == -1) {
     Serial.println("Invalid Move");
     return false;
