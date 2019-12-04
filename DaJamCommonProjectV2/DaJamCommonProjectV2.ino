@@ -246,11 +246,11 @@ void loop() {
         lights_drawBoard();
         Action a = parseInputs();
         bool okay = true;
-        while (RotateActivated && okay) {
+        while (RotateActivated && okay && nextMove == nomove) {
           okay = animateFlashRow();
           parseInputs();
         }
-        while (FlipActivated && okay) {
+        while (FlipActivated && okay && nextMove == nomove) {
           okay = animateFlashColumn();
           parseInputs();
         }
@@ -394,6 +394,7 @@ Action parseInputs() {
 
 JoystickMove parseJoystickInputs() {
   readJoystick();
+  Serial.println("Joystick Position | X:" + String(joystickX) + "  Y:" + String(joystickY)); 
   if (!joystickTriggered) {
     if (joystickX > 40) {
       joystickTriggered = true;
@@ -411,6 +412,9 @@ JoystickMove parseJoystickInputs() {
       joystickTriggered = true;
       last_partialDirection = down;
     }
+  }
+  if (joystickTriggered) {
+    Serial.println("JoyStick Triggered X:" + String(joystickX) + "   Y:" + String(joystickY));
   }
   else if (joystickY < 15 && joystickY > -15 && joystickX < 15 && joystickX > -15) {
     JoystickMove output = last_partialDirection;
