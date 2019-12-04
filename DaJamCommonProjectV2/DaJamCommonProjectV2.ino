@@ -6,8 +6,8 @@ enum Move {reverse, rotate_left, rotate_right, add, nomove};
 enum GameState {playing, P1_won, P2_won, tie};
 enum JoystickMove {up, down, left, right, center};
 enum Action {flashRow, flashColumn, noFlash, Drop};
-int temprow[COLUMNS];
-int tempcolumn[ROWS];
+int temprow[COLUMNS] = {};
+int tempcolumn[ROWS] = {};
 int player = 1; //this value must be updated at every time and can only be 0, 1, 2,: P1= 1, P2 = 2
 GameState gameState = playing;
 int horizontalDiagonalCheck[ROWS][COLUMNS * 3] = {};
@@ -28,7 +28,7 @@ int LIGHTS_OE = SCL; //A4 or A5
 int PIN_JOYSTICKX = A3;
 int PIN_JOYSTICKY = A4;
 
-int LIGHTS_ROWPINS[6] = {8, 2, 10, 4, 9, 3};
+int LIGHTS_ROWPINS[6] = {4, 9, 3, 8, 2, 10};
 
 int buttonReads[10];
 bool flipButton = false;
@@ -128,6 +128,7 @@ void lights_drawRow(int rowPin) { //If flashing, add clears to 0b11111111 and 0b
   }
   digitalWrite(rowPin, HIGH);
   pinMode(rowPin, INPUT);
+  digitalWrite(LIGHTS_OE, HIGH);
 }
 
 void lights_drawBoard() {
@@ -174,6 +175,15 @@ void DEBUG() {
   Serial.println("\n");
 }
 
+void PRINTARR(int a[], String names){
+  int sizes = *(&a + 1) - a;
+  String s = "";
+  for(int i =0; i < sizes; i ++){
+    s = s + String(a[i]) + ",";
+  }
+  Serial.println(names + ":  " + s);
+}
+
 //start backend code
 
 void copytoArrayFrom(int fromArr[ROWS][COLUMNS]) {
@@ -206,6 +216,9 @@ int move_column = -1;
 int move_row = -1;
 void loop() {
   DEBUG();
+  for (int r = 0; r < 8; r++) {
+    arr[5][r] = 2;
+  }
   while (gameState == playing) {
     lights_drawBoard();
     bool validMove = false;
@@ -507,7 +520,7 @@ void copyRow(int row) {
 
 void copyColumn(int column) {
   for (int i = 0; i < ROWS; i ++) {
-    tempcolumn[i] = arr[i][column];
+    tempcolumn[i] = int(arr[i][column]);
   }
 }
 
@@ -622,7 +635,7 @@ int checkifArrayContainsFour(int temparr[]) {
   int output = 0;
   int n = sizeof(temparr) / sizeof(temparr[0]);
   for (int i = 0; i < n - 3; i ++) {
-    if ((temparr[i] == temparr[i + 1]) && (temparr[i] == temparr[i + 2]) && (temparr[i] == temparr[i + 3]) && (temparr[i] == temparr[i + 4])) { //yes this is stupid code but whatever I don't want to use standard library lol
+    if ((temparr[i] == temparr[i + 1]) && (temparr[i] == temparr[i + 2]) && (temparr[i] == temparr[i + 3]) && (temparr[i] == temparr[i + 4]) && temparr[i] >0) { //yes this is stupid code but whatever I don't want to use standard library lol
       output = temparr[i];
       break;
     }
@@ -644,10 +657,13 @@ void isGameWon() {
   bool PlayerTwoWon = false;
   for (int i = 0; i < COLUMNS; i ++) {
     copyColumn(i);
-    if (checkifArrayContainsFour(tempcolumn) == 1) { //change
+    //Serial.println("Check Column: " + String(i));
+    //PRINTARR(tempcolumn, "Column Contents:");
+    int check = checkifArrayContainsFour(tempcolumn);
+    if (check == 1) { //change
       PlayerOneWon = true;
     }
-    if (checkifArrayContainsFour(tempcolumn) == 2) { //change
+    if (check == 2) { //change
       PlayerTwoWon = true;
     }
   }
