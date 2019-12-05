@@ -232,14 +232,15 @@ void TESTcopyArrayState(int fromArr[ROWS][COLUMNS]) {
 }
 
 //debug only
-
+//
 //int TESTARRAY[6][8] =
 //{ {0 , 1 , 2, 0 , 0 , 0 , 0, 0},
 //  {2 , 1 , 1, 0 , 0 , 0 , 0, 0},
 //  {1 , 2 , 1, 2 , 0 , 0 , 0, 0},
-//  {2 , 1 , 2, 1 , 0 , 0 , 0, 0},
-//  {1 , 2 , 0, 0 , 0 , 0 , 0, 0},
-//  {2 , 0 , 0, 0 , 0 , 0 , 0, 0 } };
+//  {2 , 1 , 2, 3 , 0 , 0 , 0, 0},
+//  {1 , 2 , 3, 3 , 0 , 0 , 0, 0},
+//  {2 , 3 , 3, 3 , 0 , 0 , 0, 0 }
+//};
 
 bool RotateActivated = false;
 bool FlipActivated = false;
@@ -248,7 +249,7 @@ int move_column = -1;
 int move_row = -1;
 
 void loop() {
-  //TESTcopyArrayState(TESTARRAY);
+//  TESTcopyArrayState(TESTARRAY);
   DEBUG();
   while (gameState == playing) {
     lights_drawBoard();
@@ -287,8 +288,9 @@ void loop() {
       switchPlayer();
     }
   }
-  delayAndLight(2000);
+  delayAndLight(500);
   winSequence();
+  delayAndLight(7000);
   resetGame();
 }
 
@@ -537,9 +539,75 @@ bool makeMove(Move m, int column, int row) {
   return validMove;
 }
 
+int clampRegion(int input, int maxVal) { //maxVal is actually not allowed, it equals zero
+  if (input >= maxVal) return input - maxVal;
+  if (input < 0) return input + maxVal;
+  return input;
+}
+
+void resetBoard() {
+  for (int yIdx = 0; yIdx < 6; yIdx++) {
+    for (int xIdx = 0; xIdx < 8; xIdx++) {
+      arr[yIdx][xIdx] = 0;
+    }
+  }
+}
+
+int counterx = 0;
 void winSequence() {
+  copytoGameArrayFrom(arr);
   Serial.println("Yay Player " + String(player) + " WON");
-  //TODO - David code some fancy flash animation thanks
+  if (gameState == tie) {
+    for (int repNum = 0; repNum < 30; repNum++) {
+      counterx += 1;
+      if (counterx >= 8) counterx = 0;
+      for (int colIdx = 0; colIdx < 1; colIdx++) {
+        resetBoard();
+        arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 0, 8)] = 1;
+        arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 4, 8)] = 2;
+        arr[clampRegion(colIdx + 1, 6)][clampRegion(counterx + 1, 8)] = 1;
+        arr[clampRegion(colIdx + 1, 6)][clampRegion(counterx + 5, 8)] = 2;
+        arr[clampRegion(colIdx + 2, 6)][clampRegion(counterx + 2, 8)] = 1;
+        arr[clampRegion(colIdx + 2, 6)][clampRegion(counterx + 6, 8)] = 2;
+        arr[clampRegion(colIdx + 3, 6)][clampRegion(counterx + 3, 8)] = 1;
+        arr[clampRegion(colIdx + 3, 6)][clampRegion(counterx + 7, 8)] = 2;
+        arr[clampRegion(colIdx + 4, 6)][clampRegion(counterx + 4, 8)] = 1;
+        arr[clampRegion(colIdx + 4, 6)][clampRegion(counterx + 8, 8)] = 2;
+        arr[clampRegion(colIdx + 5, 6)][clampRegion(counterx + 5, 8)] = 1;
+        arr[clampRegion(colIdx + 5, 6)][clampRegion(counterx + 9 - 8, 8)] = 2;
+        for (int reps = 0; reps < 20; reps++) {
+          lights_drawBoard();
+        }
+      }
+      delayMicroseconds(1);
+    }
+  }
+  else {
+    for (int repNum = 0; repNum < 30; repNum++) {
+      counterx += 1;
+      if (counterx >= 8) counterx = 0;
+      for (int colIdx = 0; colIdx < 1; colIdx++) {
+        resetBoard();
+        arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 0, 8)] = player;
+        arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 4, 8)] = player;
+        arr[clampRegion(colIdx + 1, 6)][clampRegion(counterx + 1, 8)] = player;
+        arr[clampRegion(colIdx + 1, 6)][clampRegion(counterx + 5, 8)] = player;
+        arr[clampRegion(colIdx + 2, 6)][clampRegion(counterx + 2, 8)] = player;
+        arr[clampRegion(colIdx + 2, 6)][clampRegion(counterx + 6, 8)] = player;
+        arr[clampRegion(colIdx + 3, 6)][clampRegion(counterx + 3, 8)] = player;
+        arr[clampRegion(colIdx + 3, 6)][clampRegion(counterx + 7, 8)] = player;
+        arr[clampRegion(colIdx + 4, 6)][clampRegion(counterx + 4, 8)] = player;
+        arr[clampRegion(colIdx + 4, 6)][clampRegion(counterx + 8, 8)] = player;
+        arr[clampRegion(colIdx + 5, 6)][clampRegion(counterx + 5, 8)] = player;
+        arr[clampRegion(colIdx + 5, 6)][clampRegion(counterx + 9 - 8, 8)] = player;
+        for (int reps = 0; reps < 20; reps++) {
+          lights_drawBoard();
+        }
+      }
+      delayMicroseconds(1);
+    }
+  }
+  copytoArrayFrom(gameStateArr);
 }
 
 void resetGame() {
@@ -690,15 +758,15 @@ bool AddPiece(int column) {
   if (piecePosition == -1) {
     Serial.println("Invalid Move");
     return false;
-  } 
+  }
   arr[0][column] = player;
   Serial.println("Start Fall Animation");
-//  for (int i = 0; i > piecePosition; i--) {
-//    DEBUG();
-//    arr[i][column] = player;
-//    delayAndLight(1);
-//    arr[i][column] = 0;
-//  }
+  //  for (int i = 0; i > piecePosition; i--) {
+  //    DEBUG();
+  //    arr[i][column] = player;
+  //    delayAndLight(1);
+  //    arr[i][column] = 0;
+  //  }
   //copytoArrayFrom(gameStateArr);
   delayAndLight(10);
   Serial.println("Finish Adding Piece");
