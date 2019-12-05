@@ -469,7 +469,7 @@ bool animateFlashRow() {
       }
     }
   }
-    copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
+  copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
   return true;
 }
 
@@ -518,6 +518,8 @@ bool makeMove(Move m, int column, int row) {
   switch (m) {
     case reverse:
       ReverseLights(column);
+      addGravity();
+
       break;
     case rotate_left:
       RotateLeft(row);
@@ -529,6 +531,7 @@ bool makeMove(Move m, int column, int row) {
       break;
     case add:
       validMove = AddPiece(column);
+      addGravity();
       break;
   }
   return validMove;
@@ -645,8 +648,25 @@ void RotateRight(int row) {
   copytoGameArrayFrom(arr);
 }
 
-void addGravity(){
-  //TODO causes gravity to work after a row rotate
+void addGravity() {
+  for (int iNum = 0; iNum < ROWS; iNum++) {
+    bool hasChanged = false;
+    for (int rIdx = (ROWS - 1); rIdx > 0; rIdx--) { //Don't have to do gravity on top row
+      for (int cIdx = 0; cIdx < COLUMNS; cIdx++) {
+        if (arr[rIdx][cIdx] == 0) {
+          for (int dIdx = rIdx; dIdx > 0; dIdx--) {
+            arr[dIdx][cIdx] = arr[dIdx - 1][cIdx];
+            if (arr[dIdx - 1][cIdx] != 0) hasChanged = true;
+          }
+          arr[0][cIdx] = 0; //Fill empty space on top
+        }
+      }
+    }
+    if (!hasChanged) break;
+    else {
+      delayAndLight(150);
+    }
+  }
 }
 
 
@@ -670,15 +690,16 @@ bool AddPiece(int column) {
   if (piecePosition == -1) {
     Serial.println("Invalid Move");
     return false;
-  }
+  } 
+  arr[0][column] = player;
   Serial.println("Start Fall Animation");
-  for (int i = 0; i > piecePosition; i--) {
-    DEBUG();
-    arr[i][column] = player;
-    delayAndLight(1);
-    arr[i][column] = 0;
-  }
-  copytoArrayFrom(gameStateArr);
+//  for (int i = 0; i > piecePosition; i--) {
+//    DEBUG();
+//    arr[i][column] = player;
+//    delayAndLight(1);
+//    arr[i][column] = 0;
+//  }
+  //copytoArrayFrom(gameStateArr);
   delayAndLight(10);
   Serial.println("Finish Adding Piece");
   DEBUG();
