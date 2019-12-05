@@ -4,7 +4,7 @@ int arr[ROWS][COLUMNS] = {}; //the lighting state of the gameState
 int gameStateArr[ROWS][COLUMNS] = {};
 enum Move {reverse, rotate_left, rotate_right, add, nomove};
 enum GameState {playing, P1_won, P2_won, tie};
-enum JoystickMove {up, down, left, right, center};
+enum JoystickMove {center, up, down, left, right};
 enum Action {flashRow, flashColumn, noFlash, Drop};
 int temprow[COLUMNS] = {};
 int tempcolumn[ROWS] = {};
@@ -157,8 +157,8 @@ void readButtons() { //Should debounce
 int joystickX = 0;
 int joystickY = 0;
 void readJoystick() {
-  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -90, 90);
-  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -90, 90);
+  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -100, 100);
+  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -100, 100);
 }
 
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
@@ -348,8 +348,9 @@ Action parseInputs() {
   if (column == -1) {
     if (RotateActivated && !moveConfirmed) {
       JoystickMove direction = parseJoystickInputs();
+      //Serial.println("Joystick Direction: " + String(direction));
       if (direction == up) {
-        boardRowPointer = boardRowPointer + 1 % 6;
+        boardRowPointer = (boardRowPointer + 1) % 6;
       }
       else if (direction == down) {
         boardRowPointer--;
@@ -361,8 +362,10 @@ Action parseInputs() {
     }
     else if (FlipActivated && !moveConfirmed) {
       JoystickMove direction = parseJoystickInputs();
+      //Serial.println("Joystick Direction: " + String(direction));
+
       if (direction == right) {
-        boardColumnPointer = boardColumnPointer + 1 % 8;
+        boardColumnPointer = (boardColumnPointer + 1) % 8;
       }
       else if (direction == left) {
         boardColumnPointer--;
@@ -394,7 +397,6 @@ Action parseInputs() {
 
 JoystickMove parseJoystickInputs() {
   readJoystick();
-  Serial.println("Joystick Position | X:" + String(joystickX) + "  Y:" + String(joystickY)); 
   if (!joystickTriggered) {
     if (joystickX > 40) {
       joystickTriggered = true;
@@ -413,9 +415,7 @@ JoystickMove parseJoystickInputs() {
       last_partialDirection = down;
     }
   }
-  if (joystickTriggered) {
-    Serial.println("JoyStick Triggered X:" + String(joystickX) + "   Y:" + String(joystickY));
-  }
+
   else if (joystickY < 15 && joystickY > -15 && joystickX < 15 && joystickX > -15) {
     JoystickMove output = last_partialDirection;
     joystickTriggered = false;
@@ -427,14 +427,14 @@ JoystickMove parseJoystickInputs() {
 
 bool animateFlashRow() {
   int row = boardRowPointer;
-  Serial.println("Flashing Row: " + String(row));
+  //Serial.println("Flashing Row: " + String(row));
   copytoGameArrayFrom(arr); //create backup of the game state
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = player;
     }
-    for (int l = 0; l < 20; l++) {
+    for (int l = 0; l < 10; l++) {
       delayAndLight(10);
       Action a = parseInputs();
       if (a == Drop) {
@@ -445,7 +445,7 @@ bool animateFlashRow() {
     for (int i = 0; i < 8; i ++) {
       arr[row][i] = 0;
     }
-    for (int l = 0; l < 10; l++) {
+    for (int l = 0; l < 5; l++) {
       delayAndLight(10);
       Action a = parseInputs();
       if (a == Drop) {
@@ -460,7 +460,7 @@ bool animateFlashRow() {
 
 bool animateFlashColumn() {
   int column = boardColumnPointer;
-  Serial.println("Flashing Column: " + String(column));
+  //Serial.println("Flashing Column: " + String(column));
   copytoGameArrayFrom(arr); //create backup of the game state
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
