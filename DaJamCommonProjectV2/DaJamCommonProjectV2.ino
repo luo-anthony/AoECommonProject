@@ -249,7 +249,7 @@ int move_column = -1;
 int move_row = -1;
 
 void loop() {
-//  TESTcopyArrayState(TESTARRAY);
+  //  TESTcopyArrayState(TESTARRAY);
   DEBUG();
   while (gameState == playing) {
     lights_drawBoard();
@@ -717,16 +717,18 @@ void RotateRight(int row) {
 }
 
 void addGravity() {
+  delayAndLight(150); //Show initial state
   for (int iNum = 0; iNum < ROWS; iNum++) {
     bool hasChanged = false;
-    for (int rIdx = (ROWS - 1); rIdx > 0; rIdx--) { //Don't have to do gravity on top row
-      for (int cIdx = 0; cIdx < COLUMNS; cIdx++) {
+    for (int cIdx = 0; cIdx < COLUMNS; cIdx++) {
+      for (int rIdx = (ROWS - 1); rIdx > 0; rIdx--) { //Don't have to do gravity on top row
         if (arr[rIdx][cIdx] == 0) {
           for (int dIdx = rIdx; dIdx > 0; dIdx--) {
             arr[dIdx][cIdx] = arr[dIdx - 1][cIdx];
             if (arr[dIdx - 1][cIdx] != 0) hasChanged = true;
           }
           arr[0][cIdx] = 0; //Fill empty space on top
+          break; // Only drop one space per iteration
         }
       }
     }
