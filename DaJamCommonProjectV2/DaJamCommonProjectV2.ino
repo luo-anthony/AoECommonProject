@@ -175,6 +175,19 @@ void DEBUG() {
   Serial.println("\n");
 }
 
+
+void GAMEDEBUG() {
+  Serial.println("CURRENT GAMESTATE ARRAY");
+  for (int j = 0; j < ROWS; j += 1) {
+    String s = "";
+    for (int i = 0; i < COLUMNS; i += 1) {
+      s = s + String(gameStateArr[j][i]) + ",";
+    }
+    Serial.println(s);
+  }
+  Serial.println("\n");
+}
+
 void PRINTARR(int a[], int sizes, String names) {
   String s = "";
   for (int i = 0; i < sizes; i ++) {
@@ -300,6 +313,7 @@ void resetInputs() {
   boardRowPointer = 0;
   RotateActivated = false;
   FlipActivated = false;
+  moveConfirmed = false;
   RotateButtonLastState = false;
   FlipButtonLastState = false;
 }
@@ -429,6 +443,7 @@ bool animateFlashRow() {
   int row = boardRowPointer;
   //Serial.println("Flashing Row: " + String(row));
   copytoGameArrayFrom(arr); //create backup of the game state
+  //GAMEDEBUG();
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
     for (int i = 0; i < 8; i ++) {
@@ -454,14 +469,15 @@ bool animateFlashRow() {
       }
     }
   }
+    copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
   return true;
-  copytoArrayFrom(gameStateArr); //resets the arr to one with pieces
 }
 
 bool animateFlashColumn() {
   int column = boardColumnPointer;
   //Serial.println("Flashing Column: " + String(column));
   copytoGameArrayFrom(arr); //create backup of the game state
+  //GAMEDEBUG();
   int numFlashes = 1;
   for (int j = 0; j < numFlashes; j++) {
     for (int i = 0; i < 6; i ++) {
@@ -505,9 +521,11 @@ bool makeMove(Move m, int column, int row) {
       break;
     case rotate_left:
       RotateLeft(row);
+      addGravity();
       break;
     case rotate_right:
       RotateRight(row);
+      addGravity();
       break;
     case add:
       validMove = AddPiece(column);
@@ -586,7 +604,7 @@ void ReverseLights(int column) {
     for (int j = 0; j < ROWS - numzeros; j ++) {
       arr[i][column] = onetwos[j];
     }
-    delayAndLight(400);
+    delayAndLight(5);
     for (int i = 0; i < ROWS; i ++) {
       arr[i][column] = 0;
     }
@@ -618,12 +636,17 @@ void RotateRight(int row) {
   Serial.println("Rotating Right | Row: " + String(row));
   delayAndLight(50);
   copyRow(row);
+  PRINTARR(temprow, 8, "Temp Row:");
   for (int i = 1; i < COLUMNS; i ++) {
     arr[row][i] = temprow[i - 1];
   }
   arr[row][0] = temprow[COLUMNS - 1];
   delayAndLight(5);
   copytoGameArrayFrom(arr);
+}
+
+void addGravity(){
+  //TODO causes gravity to work after a row rotate
 }
 
 
@@ -652,7 +675,7 @@ bool AddPiece(int column) {
   for (int i = 0; i > piecePosition; i--) {
     DEBUG();
     arr[i][column] = player;
-    delayAndLight(10);
+    delayAndLight(1);
     arr[i][column] = 0;
   }
   copytoArrayFrom(gameStateArr);
