@@ -31,7 +31,7 @@ int PIN_JOYSTICKY = A4;
 int LIGHTS_ROWPINS[6] = {4, 9, 3, 8, 2, 10};
 
 int buttonReads[10];
-int bMap[10] = {0,5,6,2,3,4,1,7,8,9};//{7,5,0,2,3,4,1,6,8,9};//{,5,2,3,4,5,6,7,8,9}; //4 -> 5
+int bMap[10] = {0, 5, 6, 2, 3, 4, 1, 7, 8, 9}; //{7,5,0,2,3,4,1,6,8,9};//{,5,2,3,4,5,6,7,8,9}; //4 -> 5
 bool flipButton = false;
 bool rotateButton = false;
 
@@ -288,11 +288,13 @@ void loop() {
       resetInputs();
       switchPlayer();
     }
+    else {
+      delayAndLight(500);
+      winSequence();
+      delayAndLight(7000);
+      resetGame();
+    }
   }
-  delayAndLight(500);
-  winSequence();
-  delayAndLight(7000);
-  resetGame();
 }
 
 bool joystickTriggered = false;
