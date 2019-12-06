@@ -31,6 +31,7 @@ int PIN_JOYSTICKY = A4;
 int LIGHTS_ROWPINS[6] = {4, 9, 3, 8, 2, 10};
 
 int buttonReads[10];
+int bMap[10] = {0,5,6,2,3,4,1,7,8,9};//{7,5,0,2,3,4,1,6,8,9};//{,5,2,3,4,5,6,7,8,9}; //4 -> 5
 bool flipButton = false;
 bool rotateButton = false;
 
@@ -144,8 +145,8 @@ void readButtons() { //Should debounce
     int readVal = digitalRead(PIN_BTN1);
     int readVal2 = digitalRead(PIN_BTN2);
 
-    buttonReads[bNum] = readVal;
-    buttonReads[bNum + 5] = readVal2;
+    buttonReads[bMap[bNum]] = readVal;
+    buttonReads[bMap[bNum + 5]] = readVal2;
   }
   flipButton = buttonReads[8];
   rotateButton = buttonReads[9];
@@ -157,8 +158,8 @@ void readButtons() { //Should debounce
 int joystickX = 0;
 int joystickY = 0;
 void readJoystick() {
-  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, -100, 100);
-  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, -100, 100);
+  joystickX = map(analogRead(PIN_JOYSTICKX), 0, 1024, 100, -100);
+  joystickY = map(analogRead(PIN_JOYSTICKY), 0, 1024, 100, -100);
 }
 
 // ADD FUNCTION TO GET STATE OF TWO NEW BUTTONS
