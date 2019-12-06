@@ -591,6 +591,7 @@ void winSequence() {
       if (counterx >= 8) counterx = 0;
       for (int colIdx = 0; colIdx < 1; colIdx++) {
         resetBoard();
+        player = (gameState == P2_won) + 1;
         arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 0, 8)] = player;
         arr[clampRegion(colIdx + 0, 6)][clampRegion(counterx + 4, 8)] = player;
         arr[clampRegion(colIdx + 1, 6)][clampRegion(counterx + 1, 8)] = player;
